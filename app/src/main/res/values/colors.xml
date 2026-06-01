@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Background -->
+    <color name="bg">#121212</color>
+
+    <!-- Surfaces / cards -->
+    <color name="card">#1E1E1E</color>
+    <color name="card_stroke">#2A2A2A</color>
+
+    <!-- Text -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_muted">#C6C6C6</color>
+
+    <!-- Inputs -->
+    <color name="input_fill">#1A1A1A</color>
+    <color name="input_stroke">#2A2A2A</color>
+
+    <!-- Neutral "accent" (keep name for compatibility, but no blue branding) -->
+    <color name="accent">#C6C6C6</color>
+
+    <!-- Danger (keep red, useful for destructive actions if needed) -->
+    <color name="danger">#FF5A5F</color>
+</resources>

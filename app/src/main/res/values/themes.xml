@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.Deskly" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Base colors -->
+        <item name="colorPrimary">#C6C6C6</item>
+        <item name="colorPrimaryVariant">#C6C6C6</item>
+        <item name="colorOnPrimary">#121212</item>
+
+        <item name="colorSecondary">#C6C6C6</item>
+        <item name="colorSecondaryVariant">#C6C6C6</item>
+        <item name="colorOnSecondary">#121212</item>
+
+        <!-- Legacy / controls -->
+        <item name="colorAccent">#C6C6C6</item>
+        <item name="colorControlActivated">#C6C6C6</item>
+
+        <!-- Optional: status bar -->
+        <item name="android:statusBarColor">#121212</item>
+        <item name="android:navigationBarColor">#121212</item>
+    </style>
+
+</resources>

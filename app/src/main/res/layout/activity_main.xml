@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootScroll"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@drawable/bg_screen"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:id="@+id/root"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- TOP BAR -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="14dp">
+
+            <TextView
+                android:id="@+id/txtStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Disconnected"
+                android:textColor="@color/text_primary"
+                android:textStyle="bold"
+                android:textSize="22sp"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <!-- ⚙️ Settings (emoji button) -->
+                <TextView
+                    android:id="@+id/btnSettingsIcon"
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
+                    android:background="@drawable/bg_btn"
+                    android:gravity="center"
+                    android:text="⚙️"
+                    android:textSize="18sp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:contentDescription="Settings" />
+
+                <Space android:layout_width="10dp" android:layout_height="1dp" />
+
+                <!-- ℹ️ About (emoji button) -->
+                <TextView
+                    android:id="@+id/btnAboutIcon"
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
+                    android:background="@drawable/bg_btn"
+                    android:gravity="center"
+                    android:text="ℹ️"
+                    android:textSize="18sp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:contentDescription="About" />
+            </LinearLayout>
+        </RelativeLayout>
+
+        <!-- SLIDERS BLOCK -->
+        <!-- Row 1: Primary slider + Night (moon) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Primary"
+                    android:textColor="@color/text_muted"
+                    android:textSize="12sp"
+                    android:paddingBottom="4dp" />
+
+                <SeekBar
+                    android:id="@+id/seekPrimary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="100"
+                    android:progress="50"
+                    android:thumbTint="@color/text_muted"
+                    android:progressTint="@color/text_muted"
+                    android:progressBackgroundTint="@color/card_stroke" />
+            </LinearLayout>
+
+            <Space android:layout_width="12dp" android:layout_height="1dp" />
+
+            <!-- 🌙 Night (emoji button) -->
+            <TextView
+                android:id="@+id/btnNight"
+                android:layout_width="54dp"
+                android:layout_height="54dp"
+                android:background="@drawable/bg_btn"
+                android:gravity="center"
+                android:text="🌙"
+                android:textSize="18sp"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="Night mode" />
+        </LinearLayout>
+
+        <Space android:layout_width="1dp" android:layout_height="12dp" />
+
+        <!-- Row 2: Internal brightness + Quiet (fan/energy) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Brightness (internal)"
+                    android:textColor="@color/text_muted"
+                    android:textSize="12sp"
+                    android:paddingBottom="4dp" />
+
+                <SeekBar
+                    android:id="@+id/seekInternalBrightness"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="100"
+                    android:progress="50"
+                    android:thumbTint="@color/text_muted"
+                    android:progressTint="@color/text_muted"
+                    android:progressBackgroundTint="@color/card_stroke" />
+            </LinearLayout>
+
+            <Space android:layout_width="12dp" android:layout_height="1dp" />
+
+            <!-- 🌀 Quiet / Fan (emoji button) -->
+            <TextView
+                android:id="@+id/btnQuiet"
+                android:layout_width="54dp"
+                android:layout_height="54dp"
+                android:background="@drawable/bg_btn"
+                android:gravity="center"
+                android:text="🌀"
+                android:textSize="18sp"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="Quiet mode" />
+        </LinearLayout>
+
+        <Space android:layout_width="1dp" android:layout_height="12dp" />
+
+        <!-- Row 3: Volume + Mute -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Volume"
+                    android:textColor="@color/text_muted"
+                    android:textSize="12sp"
+                    android:paddingBottom="4dp" />
+
+                <SeekBar
+                    android:id="@+id/seekVolume"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="100"
+                    android:progress="50"
+                    android:thumbTint="@color/text_muted"
+                    android:progressTint="@color/text_muted"
+                    android:progressBackgroundTint="@color/card_stroke" />
+            </LinearLayout>
+
+            <Space android:layout_width="12dp" android:layout_height="1dp" />
+
+            <!-- 🔇 Mute (emoji button) -->
+            <TextView
+                android:id="@+id/btnMute"
+                android:layout_width="54dp"
+                android:layout_height="54dp"
+                android:background="@drawable/bg_btn"
+                android:gravity="center"
+                android:text="🔊"
+                android:textSize="18sp"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="Mute toggle" />
+        </LinearLayout>
+
+        <Space android:layout_width="1dp" android:layout_height="22dp" />
+
+        <!-- TIMER STATUS -->
+        <!-- (tap on this line will switch SLEEP/SHUTDOWN in MainActivity) -->
+        <TextView
+            android:id="@+id/txtTimerStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TIMER • 30 min • SLEEP"
+            android:textColor="@color/text_muted"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:paddingBottom="12dp"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- TIMER: - / + -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnTimerMinus"
+                style="@style/DesklyPillButton"
+                android:layout_width="0dp"
+                android:layout_height="58dp"
+                android:layout_weight="1"
+                android:text="-"
+                android:textSize="22sp"
+                android:background="@drawable/bg_btn" />
+
+            <Space android:layout_width="12dp" android:layout_height="1dp" />
+
+            <Button
+                android:id="@+id/btnTimerPlus"
+                style="@style/DesklyPillButton"
+                android:layout_width="0dp"
+                android:layout_height="58dp"
+                android:layout_weight="1"
+                android:text="+"
+                android:textSize="22sp"
+                android:background="@drawable/bg_btn" />
+        </LinearLayout>
+
+        <Space android:layout_width="1dp" android:layout_height="12dp" />
+
+        <!-- TIMER: Start / Cancel -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnTimerStart"
+                style="@style/DesklyPillButton"
+                android:layout_width="0dp"
+                android:layout_height="58dp"
+                android:layout_weight="1"
+                android:text="START"
+                android:textSize="18sp"
+                android:background="@drawable/bg_btn" />
+
+            <Space android:layout_width="12dp" android:layout_height="1dp" />
+
+            <Button
+                android:id="@+id/btnTimerCancel"
+                style="@style/DesklyPillButton"
+                android:layout_width="0dp"
+                android:layout_height="58dp"
+                android:layout_weight="1"
+                android:text="CANCEL"
+                android:textSize="18sp"
+                android:background="@drawable/bg_btn" />
+        </LinearLayout>
+
+        <Space android:layout_width="1dp" android:layout_height="20dp" />
+
+        <!-- POWER -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnLock"
+                style="@style/DesklyPillButton"
+                android:layout_width="0dp"
+                android:layout_height="66dp"
+                android:layout_weight="1"
+                android:text="LOCK"
+                android:textSize="18sp"
+                android:background="@drawable/bg_btn" />
+
+            <Space android:layout_width="12dp" android:layout_height="1dp" />
+
+            <Button
+                android:id="@+id/btnSleep"
+                style="@style/DesklyPillButton"
+                android:layout_width="0dp"
+                android:layout_height="66dp"
+                android:layout_weight="1"
+                android:text="SLEEP"
+                android:textSize="18sp"
+                android:background="@drawable/bg_btn" />
+        </LinearLayout>
+
+        <Space android:layout_width="1dp" android:layout_height="12dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnRestart"
+                style="@style/DesklyPillButton"
+                android:layout_width="0dp"
+                android:layout_height="66dp"
+                android:layout_weight="1"
+                android:text="RESTART"
+                android:textSize="18sp"
+                android:background="@drawable/bg_btn" />
+
+            <Space android:layout_width="12dp" android:layout_height="1dp" />
+
+            <Button
+                android:id="@+id/btnShutdown"
+                style="@style/DesklyPillButton"
+                android:layout_width="0dp"
+                android:layout_height="66dp"
+                android:layout_weight="1"
+                android:text="SHUTDOWN"
+                android:textSize="18sp"
+                android:background="@drawable/bg_btn" />
+        </LinearLayout>
+
+        <Space android:layout_width="1dp" android:layout_height="24dp" />
+
+    </LinearLayout>
+</ScrollView>
