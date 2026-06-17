@@ -78,7 +78,7 @@ public sealed class UdpDiscoveryServer
                 var localIp = GetLocalIPv4ForTarget(result.RemoteEndPoint.Address) ?? "0.0.0.0";
 
                 var json =
-                    $"{{\"type\":\"discover_response\",\"id\":\"{Escape(_serverId)}\",\"name\":\"{Escape(_serverName)}\",\"ip\":\"{Escape(localIp)}\",\"port\":{tcpPort},\"udpPort\":{udpPort}}}";
+                    $"{{\"type\":\"discover_response\",\"protocolVersion\":{DesklyProtocol.Version},\"id\":\"{Escape(_serverId)}\",\"name\":\"{Escape(_serverName)}\",\"ip\":\"{Escape(localIp)}\",\"port\":{tcpPort},\"udpPort\":{udpPort}}}";
 
                 var bytes = Encoding.UTF8.GetBytes(json);
                 await _udp.SendAsync(bytes, bytes.Length, result.RemoteEndPoint);

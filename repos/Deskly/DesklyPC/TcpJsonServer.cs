@@ -116,7 +116,7 @@ public sealed class TcpJsonServer
                         continue;
                     }
 
-                    if (LogTraffic) Log?.Invoke($"[IN ] {line}");
+                    if (LogTraffic) Log?.Invoke($"[IN ] {DescribeJson(line)}");
 
                     string resp;
                     try
@@ -131,7 +131,7 @@ public sealed class TcpJsonServer
 
                     await writer.WriteLineAsync(resp);
 
-                    if (LogTraffic) Log?.Invoke($"[OUT] {resp}");
+                    if (LogTraffic) Log?.Invoke($"[OUT] {DescribeJson(resp)}");
                 }
             }
         }
@@ -148,4 +148,30 @@ public sealed class TcpJsonServer
 
     private static string Escape(string s)
         => s.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r", "").Replace("\n", "");
+
+    private static string DescribeJson(string line)
+    {
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(line);
+            var root = doc.RootElement;
+            var type = root.TryGetProperty("type", out var typeEl) && typeEl.ValueKind == System.Text.Json.JsonValueKind.String
+                ? typeEl.GetString()
+                : "?";
+            var rid = root.TryGetProperty("rid", out var ridEl) && ridEl.ValueKind == System.Text.Json.JsonValueKind.String && !string.IsNullOrWhiteSpace(ridEl.GetString())
+                ? "yes"
+                : "no";
+            var ok = root.TryGetProperty("ok", out var okEl) && (okEl.ValueKind == System.Text.Json.JsonValueKind.True || okEl.ValueKind == System.Text.Json.JsonValueKind.False)
+                ? $" ok={okEl.GetBoolean()}"
+                : "";
+            var version = root.TryGetProperty("protocolVersion", out var versionEl) && versionEl.ValueKind == System.Text.Json.JsonValueKind.Number && versionEl.TryGetInt32(out var v)
+                ? $" v={v}"
+                : "";
+            return $"type={type ?? "?"} rid={rid}{version}{ok}";
+        }
+        catch
+        {
+            return "invalid-json";
+        }
+    }
 }

@@ -1,6 +1,16 @@
 package com.example.deskly
 
-import kotlinx.coroutines.*
+import android.os.Build
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.json.JSONObject
@@ -13,12 +23,16 @@ import java.net.Socket
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArraySet
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 
 object DesklyClient {
 
     data class State(
+        val connecting: Boolean = false,
         val connected: Boolean = false,
+        val authenticating: Boolean = false,
         val authorized: Boolean = false,
         val serverIp: String? = null,
         val serverPort: Int? = null,
@@ -33,8 +47,8 @@ object DesklyClient {
 
     private const val CONNECT_TIMEOUT_MS = 6000
     private const val REQUEST_TIMEOUT_MS = 10_000L
-    private const val HEARTBEAT_MS = 10_000L
     private const val MAX_HB_FAILS = 3
+    private const val PERF_LOG_WINDOW_MS = 30_000L
 
     private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val mainScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -42,19 +56,23 @@ object DesklyClient {
     private val stateRef = AtomicReference(State())
     val state: State get() = stateRef.get()
 
-    // ✅ Multi-listener (aby Settings neprebil Main)
     private val listeners = CopyOnWriteArraySet<Listener>()
 
-    /** Backward compatible: správa sa ako "set jediného", ale my to premapujeme */
     fun setListener(l: Listener?) {
         listeners.clear()
         if (l != null) listeners.add(l)
     }
 
-    fun addListener(l: Listener) { listeners.add(l) }
-    fun removeListener(l: Listener) { listeners.remove(l) }
+    fun addListener(l: Listener) {
+        listeners.add(l)
+    }
+
+    fun removeListener(l: Listener) {
+        listeners.remove(l)
+    }
 
     private var socket: Socket? = null
+    @Volatile private var connectingSocket: Socket? = null
     private var reader: BufferedReader? = null
     private var writer: BufferedWriter? = null
 
@@ -63,11 +81,29 @@ object DesklyClient {
 
     private val writeMutex = Mutex()
     private val pending = ConcurrentHashMap<String, CompletableDeferred<JSONObject>>()
+    private val connectionGeneration = AtomicInteger(0)
 
     @Volatile private var token: String? = null
+    @Volatile private var performancePolicy = PerformancePolicy()
+    @Volatile private var diagnosticsEnabled = false
+    private val sentCommands = AtomicLong(0)
+    private val failedSends = AtomicLong(0)
+    private val lastPerfLogAt = AtomicLong(System.currentTimeMillis())
+
+    fun configurePerformance(policy: PerformancePolicy, diagnostics: Boolean) {
+        performancePolicy = policy
+        diagnosticsEnabled = diagnostics
+    }
 
     private fun log(s: String) {
         mainScope.launch { listeners.forEach { it.onLog(s) } }
+    }
+
+    private fun logJson(prefix: String, json: JSONObject) {
+        val type = json.optString("type", "?").ifBlank { "?" }
+        val rid = if (json.optString("rid", "").isBlank()) "no" else "yes"
+        val ok = if (json.has("ok")) " ok=${json.optBoolean("ok", false)}" else ""
+        log("$prefix type=$type rid=$rid$ok")
     }
 
     private fun updateState(block: (State) -> State) {
@@ -78,50 +114,114 @@ object DesklyClient {
 
     fun setToken(t: String?) {
         token = t
-        log("🔑 Token set: ${if (t.isNullOrBlank()) "null" else "yes"}")
+        log("Token set: ${if (t.isNullOrBlank()) "none" else "yes"}")
     }
 
     fun getToken(): String? = token
 
+    private fun phoneName(): String {
+        val manufacturer = Build.MANUFACTURER?.trim().orEmpty()
+        val model = Build.MODEL?.trim().orEmpty()
+
+        return when {
+            manufacturer.isBlank() && model.isBlank() -> "Android phone"
+            manufacturer.isBlank() -> model
+            model.isBlank() -> manufacturer
+            model.startsWith(manufacturer, ignoreCase = true) -> model
+            else -> "$manufacturer $model"
+        }
+    }
+
     fun connect(ip: String, port: Int, onDone: (ok: Boolean, err: String?) -> Unit) {
         ioScope.launch {
+            val generation = connectionGeneration.incrementAndGet()
             try {
-                closeInternal("replace connect")
-                updateState { it.copy(connected = false, authorized = false, serverIp = ip, serverPort = port, lastError = null) }
+                closeInternal("replace connect", notify = false)
+                updateState {
+                    it.copy(
+                        connecting = true,
+                        connected = false,
+                        authenticating = false,
+                        authorized = false,
+                        serverIp = ip,
+                        serverPort = port,
+                        lastError = null
+                    )
+                }
 
-                log("🔌 Connecting to $ip:$port …")
+                log("Connecting to $ip:$port")
 
                 val s = Socket()
+                connectingSocket = s
                 s.tcpNoDelay = true
                 s.keepAlive = true
                 s.connect(InetSocketAddress(ip, port), CONNECT_TIMEOUT_MS)
+                if (connectingSocket === s) connectingSocket = null
+
+                if (connectionGeneration.get() != generation) {
+                    try { s.close() } catch (_: Exception) {}
+                    withContext(Dispatchers.Main) { onDone(false, "Connect replaced") }
+                    return@launch
+                }
+
+                val nextReader = BufferedReader(InputStreamReader(s.getInputStream(), Charsets.UTF_8))
+                val nextWriter = BufferedWriter(OutputStreamWriter(s.getOutputStream(), Charsets.UTF_8))
+
+                if (connectionGeneration.get() != generation) {
+                    try { nextReader.close() } catch (_: Exception) {}
+                    try { nextWriter.close() } catch (_: Exception) {}
+                    try { s.close() } catch (_: Exception) {}
+                    withContext(Dispatchers.Main) { onDone(false, "Connect replaced") }
+                    return@launch
+                }
 
                 socket = s
-                reader = BufferedReader(InputStreamReader(s.getInputStream(), Charsets.UTF_8))
-                writer = BufferedWriter(OutputStreamWriter(s.getOutputStream(), Charsets.UTF_8))
+                reader = nextReader
+                writer = nextWriter
 
-                updateState { st -> st.copy(connected = true, authorized = false, lastError = null) }
+                updateState {
+                    it.copy(
+                        connecting = false,
+                        connected = true,
+                        authenticating = false,
+                        authorized = false,
+                        lastError = null
+                    )
+                }
 
-                startReaderLoop()
-                startHeartbeat()
+                startReaderLoop(generation)
+                startHeartbeat(generation)
 
                 withContext(Dispatchers.Main) { onDone(true, null) }
             } catch (e: Exception) {
                 val msg = e.message ?: e.javaClass.simpleName
-                log("❌ Connect failed: $msg")
-                updateState { it.copy(connected = false, authorized = false, lastError = msg) }
-                closeInternal("connect fail")
+                log("Connect failed: $msg")
+                if (connectionGeneration.get() == generation) {
+                    closeInternal("connect fail", notify = false)
+                    updateState {
+                        it.copy(
+                            connecting = false,
+                            connected = false,
+                            authenticating = false,
+                            authorized = false,
+                            serverIp = ip,
+                            serverPort = port,
+                            lastError = msg
+                        )
+                    }
+                }
                 withContext(Dispatchers.Main) { onDone(false, msg) }
             }
         }
     }
 
     fun close(reason: String = "manual") {
+        connectionGeneration.incrementAndGet()
         ioScope.launch { closeInternal(reason) }
     }
 
-    private fun closeInternal(reason: String) {
-        log("🔌 Closing: $reason")
+    private fun closeInternal(reason: String, notify: Boolean = true) {
+        log("Closing: $reason")
 
         heartbeatJob?.cancel()
         heartbeatJob = null
@@ -132,17 +232,28 @@ object DesklyClient {
         try { reader?.close() } catch (_: Exception) {}
         try { writer?.close() } catch (_: Exception) {}
         try { socket?.close() } catch (_: Exception) {}
+        try { connectingSocket?.close() } catch (_: Exception) {}
 
         reader = null
         writer = null
         socket = null
+        connectingSocket = null
 
         pending.forEach { (_, d) ->
             d.completeExceptionally(RuntimeException("closed"))
         }
         pending.clear()
 
-        updateState { it.copy(connected = false, authorized = false) }
+        if (notify) {
+            updateState {
+                it.copy(
+                    connecting = false,
+                    connected = false,
+                    authenticating = false,
+                    authorized = false
+                )
+            }
+        }
     }
 
     fun pair(pin: String, onDone: (ok: Boolean, token: String?, msg: String) -> Unit) {
@@ -150,14 +261,14 @@ object DesklyClient {
             try {
                 val resp = request(
                     type = "pair_request",
-                    payload = JSONObject().put("pin", pin),
+                    payload = JSONObject()
+                        .put("pin", pin)
+                        .put("deviceName", phoneName()),
                     timeoutMs = REQUEST_TIMEOUT_MS
                 )
 
                 val ok = resp.optBoolean("ok", false)
                 val msg = resp.optString("message", if (ok) "Paired" else "Pair failed")
-
-                // ✅ FIX: optString default nemôže byť null
                 val t = resp.optJSONObject("data")
                     ?.optString("token")
                     ?.takeIf { it.isNotBlank() }
@@ -167,7 +278,7 @@ object DesklyClient {
                 withContext(Dispatchers.Main) { onDone(ok, t, msg) }
             } catch (e: Exception) {
                 val msg = e.message ?: e.javaClass.simpleName
-                log("❌ Pair failed: $msg")
+                log("Pair failed: $msg")
                 withContext(Dispatchers.Main) { onDone(false, null, msg) }
             }
         }
@@ -176,21 +287,31 @@ object DesklyClient {
     fun auth(token: String, onDone: (ok: Boolean, msg: String) -> Unit) {
         ioScope.launch {
             try {
+                updateState { it.copy(authenticating = true, authorized = false, lastError = null) }
+
                 val resp = request(
                     type = "auth_request",
-                    payload = JSONObject().put("token", token),
+                    payload = JSONObject()
+                        .put("token", token)
+                        .put("deviceName", phoneName()),
                     timeoutMs = 6000L
                 )
 
                 val ok = resp.optBoolean("ok", false)
                 val msg = resp.optString("message", if (ok) "Authorized" else "Unauthorized")
 
-                updateState { st -> st.copy(authorized = ok) }
+                updateState {
+                    it.copy(
+                        authenticating = false,
+                        authorized = ok,
+                        lastError = if (ok) null else msg
+                    )
+                }
 
                 withContext(Dispatchers.Main) { onDone(ok, msg) }
             } catch (e: Exception) {
                 val msg = e.message ?: e.javaClass.simpleName
-                updateState { st -> st.copy(authorized = false, lastError = msg) }
+                updateState { it.copy(authenticating = false, authorized = false, lastError = msg) }
                 withContext(Dispatchers.Main) { onDone(false, msg) }
             }
         }
@@ -201,8 +322,11 @@ object DesklyClient {
         ioScope.launch {
             try {
                 sendRaw(withRid(type, p))
+                sentCommands.incrementAndGet()
+                maybeLogPerformance("send:$type")
             } catch (e: Exception) {
-                log("❌ sendSecure($type) failed: ${e.message ?: e.javaClass.simpleName}")
+                failedSends.incrementAndGet()
+                log("sendSecure($type) failed: ${e.message ?: e.javaClass.simpleName}")
             }
         }
     }
@@ -227,9 +351,7 @@ object DesklyClient {
         }
     }
 
-    // ===== Internals =====
-
-    private fun startReaderLoop() {
+    private fun startReaderLoop(generation: Int) {
         readerJob?.cancel()
         readerJob = ioScope.launch {
             try {
@@ -237,8 +359,8 @@ object DesklyClient {
                     val line = reader?.readLine() ?: break
                     if (line.isBlank()) continue
 
-                    log("⬅ $line")
                     val json = JSONObject(line)
+                    logJson("<-", json)
 
                     val rid = json.optString("rid", "")
                     if (rid.isNotBlank()) {
@@ -248,52 +370,90 @@ object DesklyClient {
                     mainScope.launch { listeners.forEach { it.onJson(json) } }
                 }
             } catch (e: Exception) {
-                log("❌ Reader loop crashed: ${e.message ?: e.javaClass.simpleName}")
+                log("Reader loop ended: ${e.message ?: e.javaClass.simpleName}")
             } finally {
-                closeInternal("reader ended")
+                if (connectionGeneration.get() == generation) {
+                    closeInternal("reader ended")
+                } else {
+                    log("Reader ended for replaced connection")
+                }
             }
         }
     }
 
-    private fun startHeartbeat() {
+    private fun startHeartbeat(generation: Int) {
         heartbeatJob?.cancel()
         heartbeatJob = ioScope.launch {
             var fails = 0
             while (isActive) {
-                delay(HEARTBEAT_MS)
+                delay(performancePolicy.heartbeatMs)
 
+                if (connectionGeneration.get() != generation) break
                 if (!state.connected) continue
                 if (!state.authorized) continue
                 val t = token ?: continue
 
                 try {
+                    val started = System.currentTimeMillis()
                     val resp = request("ping_secure", JSONObject().put("token", t), 4000L)
+                    if (diagnosticsEnabled) {
+                        log("perf heartbeatLatencyMs=${System.currentTimeMillis() - started} intervalMs=${performancePolicy.heartbeatMs}")
+                    }
                     val ok = resp.optBoolean("ok", false)
                     if (ok) {
                         fails = 0
                     } else {
                         fails++
-                        log("⚠ Heartbeat not ok (${resp.optString("message")})")
+                        val message = resp.optString("message")
+                        log("Heartbeat not ok ($message)")
+                        if (message.contains("Unauthorized", ignoreCase = true)) {
+                            updateState {
+                                it.copy(
+                                    authenticating = false,
+                                    authorized = false,
+                                    lastError = message.ifBlank { "Unauthorized" }
+                                )
+                            }
+                            if (connectionGeneration.get() == generation) {
+                                closeInternal("unauthorized heartbeat")
+                            }
+                            break
+                        }
                     }
                 } catch (_: Exception) {
                     fails++
                 }
 
                 if (fails >= MAX_HB_FAILS) {
-                    log("⚠ Heartbeat failed $fails× → disconnect")
-                    closeInternal("heartbeat fails")
+                    log("Heartbeat failed $fails times; disconnecting")
+                    if (connectionGeneration.get() == generation) {
+                        closeInternal("heartbeat fails")
+                    }
                     fails = 0
                 }
             }
         }
     }
 
+    private fun maybeLogPerformance(reason: String) {
+        if (!diagnosticsEnabled) return
+        val now = System.currentTimeMillis()
+        val last = lastPerfLogAt.get()
+        if (now - last < PERF_LOG_WINDOW_MS) return
+        if (!lastPerfLogAt.compareAndSet(last, now)) return
+
+        val sent = sentCommands.getAndSet(0)
+        val failed = failedSends.getAndSet(0)
+        log(
+            "perf reason=$reason sent=$sent failed=$failed pending=${pending.size} " +
+                "heartbeatMs=${performancePolicy.heartbeatMs} lowPower=${performancePolicy.effectiveLowPower}"
+        )
+    }
+
     private suspend fun request(type: String, payload: JSONObject? = null, timeoutMs: Long): JSONObject {
         val rid = UUID.randomUUID().toString()
-        val msg = JSONObject()
+        val msg = DesklyProtocol.request(type, payload)
             .put("rid", rid)
-            .put("type", type)
-            .put("payload", payload ?: JSONObject())
 
         val def = CompletableDeferred<JSONObject>()
         pending[rid] = def
@@ -310,7 +470,7 @@ object DesklyClient {
         writeMutex.withLock {
             val w = writer ?: throw IllegalStateException("Not connected")
             val line = json.toString()
-            log("➡ $line")
+            logJson("->", json)
             w.write(line)
             w.newLine()
             w.flush()
@@ -318,9 +478,7 @@ object DesklyClient {
     }
 
     private fun withRid(type: String, payload: JSONObject): JSONObject {
-        return JSONObject()
+        return DesklyProtocol.request(type, payload)
             .put("rid", UUID.randomUUID().toString())
-            .put("type", type)
-            .put("payload", payload)
     }
 }

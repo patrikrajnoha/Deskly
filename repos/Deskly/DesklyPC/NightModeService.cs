@@ -14,6 +14,7 @@ public static class NightModeService
 
     private static bool _enabled;
     private static int _intensity; // 0..100
+    private static int? _targetKelvin;
 
     // Apply coalescing: last request wins
     private static int _applyVersion;
@@ -45,9 +46,17 @@ public static class NightModeService
     /// enabled=true  -> apply Kelvin-based gamma ramp.
     /// </summary>
     public static bool TrySet(bool enabled, int intensity0to100, out string message)
+        => TrySet(enabled, intensity0to100, targetKelvin: null, out message);
+
+    /// <summary>
+    /// Backward compatible: targetKelvin=null keeps the previous intensity-based warm range.
+    /// When targetKelvin is supplied, intensity controls only filter strength.
+    /// </summary>
+    public static bool TrySet(bool enabled, int intensity0to100, int? targetKelvin, out string message)
     {
         message = "";
         intensity0to100 = Math.Clamp(intensity0to100, 0, 100);
+        targetKelvin = targetKelvin.HasValue ? Math.Clamp(targetKelvin.Value, 500, KELVIN_MAX) : null;
         if (!enabled) intensity0to100 = 0;
 
         bool shouldSnapshot = false;
@@ -58,6 +67,7 @@ public static class NightModeService
 
             _enabled = enabled && intensity0to100 > 0;
             _intensity = intensity0to100;
+            _targetKelvin = _enabled ? targetKelvin : null;
 
             // Snapshot originals only on first transition from OFF -> ON
             if (_enabled && !wasEnabled && !_hasSnapshot)
@@ -117,12 +127,14 @@ public static class NightModeService
         int myVersion;
         bool enabled;
         int intensity;
+        int? targetKelvin;
 
         lock (_lock)
         {
             myVersion = _applyVersion;
             enabled = _enabled;
             intensity = _intensity;
+            targetKelvin = _targetKelvin;
         }
 
         var displays = EnumerateDisplayDevices();
@@ -158,12 +170,13 @@ public static class NightModeService
             return;
         }
 
-        // intensity 0..100 -> Kelvin 6500..4200 (linear)
+        // Legacy path: intensity 0..100 -> Kelvin 6500..4200.
+        // New path: supplied Kelvin defines hue; intensity defines strength.
         var t = intensity / 100.0;
-        var targetKelvin = (int)Math.Round(KELVIN_MAX - t * (KELVIN_MAX - KELVIN_MIN));
+        var activeKelvin = targetKelvin ?? (int)Math.Round(KELVIN_MAX - t * (KELVIN_MAX - KELVIN_MIN));
 
         // convert Kelvin -> RGB whitepoint weights (0..1)
-        var (wr, wg, wb) = KelvinToRgbWeights(targetKelvin);
+        var (wr, wg, wb) = KelvinToRgbWeights(activeKelvin);
 
         // Build gamma ramp (3x256)
         var ramp = BuildWarmRamp(wr, wg, wb, intensity);

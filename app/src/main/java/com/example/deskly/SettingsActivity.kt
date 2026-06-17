@@ -3,6 +3,7 @@ package com.example.deskly
 import android.os.Bundle
 import android.view.View
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import org.json.JSONObject
@@ -23,58 +24,40 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
     private val keyWolPort = "wol_port"
 
     // Connection prefs (rovnaké ako v Main)
-    private val keyIp = "server_ip"
-    private val keyPort = "server_port"
-    private val keyDevice = "server_device_key"
-    private val legacyKeyToken = "auth_token"
-
-    private fun tokenKey(deviceKey: String) = "auth_token__${deviceKey}"
-
-    private fun getDeviceKey(): String {
-        val prefs = getSharedPreferences(prefsName, MODE_PRIVATE)
-        val dk = prefs.getString(keyDevice, null)
-        if (!dk.isNullOrBlank()) return dk
-        val ip = prefs.getString(keyIp, null)?.trim().orEmpty()
-        val port = prefs.getString(keyPort, "5050")?.trim().orEmpty()
-        return "manual_${ip}:${port}"
-    }
-
     private fun saveIpPort(ip: String, port: Int) {
-        getSharedPreferences(prefsName, MODE_PRIVATE).edit()
-            .putString(keyIp, ip)
-            .putString(keyPort, port.toString())
-            .putString(keyDevice, "manual_${ip}:${port}")
+        val saved = DesklyPrefs.getSavedServer(this)
+        val keepRawId = saved?.rawId != null && saved.ip == ip && saved.port == port
+        DesklyPrefs.saveManualServer(this, ip, port, keepRawIdForMigration = keepRawId)
+        getSharedPreferences(prefsName, MODE_PRIVATE)
+            .edit()
+            .putString(DesklyPrefs.KEY_DEVICE_NAME, "Manual PC")
             .apply()
     }
 
     private fun getTokenRaw(): String? {
-        val prefs = getSharedPreferences(prefsName, MODE_PRIVATE)
-        val dk = getDeviceKey()
-        val perDevice = prefs.getString(tokenKey(dk), null)
-        if (!perDevice.isNullOrBlank()) return perDevice
-
-        val legacy = prefs.getString(legacyKeyToken, null)
-        if (!legacy.isNullOrBlank()) {
-            prefs.edit().putString(tokenKey(dk), legacy).remove(legacyKeyToken).apply()
-            return legacy
-        }
-        return null
+        return DesklyPrefs.getToken(this)
     }
 
     private fun setTokenForCurrentDevice(token: String?) {
-        val prefs = getSharedPreferences(prefsName, MODE_PRIVATE)
-        val dk = getDeviceKey()
-        if (token.isNullOrBlank()) prefs.edit().remove(tokenKey(dk)).apply()
-        else prefs.edit().putString(tokenKey(dk), token).apply()
+        DesklyPrefs.setTokenForCurrentDevice(this, token)
         DesklyClient.setToken(token)
     }
 
-    // Timer action pref
+    // Default timer pref
     private val keyTimerAction = "timer_action" // "sleep" | "shutdown"
 
     // Views
     private lateinit var txtConnStatus: TextView
     private lateinit var txtAuthStatus: TextView
+    private lateinit var txtAutoConnectValue: TextView
+    private lateinit var txtLowPowerValue: TextView
+    private lateinit var txtPerformanceDiagnosticsValue: TextView
+    private lateinit var txtSavedPcValue: TextView
+    private lateinit var txtSavedPcSubtitle: TextView
+    private lateinit var txtPairingValue: TextView
+    private lateinit var switchAutoConnect: Switch
+    private lateinit var switchLowPower: Switch
+    private lateinit var switchPerformanceDiagnostics: Switch
 
     private lateinit var edtIp: EditText
     private lateinit var edtPort: EditText
@@ -88,6 +71,15 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
 
     private lateinit var btnTimerSleep: Button
     private lateinit var btnTimerShutdown: Button
+    private lateinit var spinnerEyeMode: Spinner
+    private lateinit var seekEyeIntensity: SeekBar
+    private lateinit var txtEyeIntensity: TextView
+    private lateinit var seekScreenDim: SeekBar
+    private lateinit var txtScreenDim: TextView
+    private lateinit var switchVolumeFade: Switch
+    private lateinit var switchRestoreBrightness: Switch
+    private lateinit var btnEyeIntensityInfo: ImageButton
+    private lateinit var btnScreenDimInfo: ImageButton
 
     // WOL views (existing ids)
     private lateinit var edtMac: EditText
@@ -100,12 +92,26 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
     private lateinit var wolHeader: LinearLayout
     private lateinit var wolContent: LinearLayout
     private lateinit var wolArrow: TextView
+    private lateinit var manualConnectionHeader: LinearLayout
+    private lateinit var manualConnectionContent: LinearLayout
+    private lateinit var manualConnectionArrow: TextView
+    private lateinit var btnProtocolInfo: Button
+    private lateinit var btnUnsupportedInfo: Button
+    private lateinit var switchClipboardSync: Switch
+    private lateinit var txtClipboardSyncValue: TextView
+    private lateinit var switchPowerActions: Switch
+    private lateinit var txtPowerActionsValue: TextView
+    private lateinit var spinnerVolumeButtonMode: Spinner
+    private lateinit var txtVolumeButtonModeValue: TextView
+    private lateinit var switchNotifications: Switch
+    private lateinit var txtNotificationsValue: TextView
 
     private var busy = false
     private var selectedTimerAction: String = "sleep"
 
     // ✅ otvorené/zatvorené (keď chceš default open, daj true)
     private var wolExpanded: Boolean = false
+    private var manualExpanded: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -117,6 +123,15 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
         // Bind
         txtConnStatus = findViewById(R.id.txtConnStatus)
         txtAuthStatus = findViewById(R.id.txtAuthStatus)
+        txtAutoConnectValue = findViewById(R.id.txtAutoConnectValue)
+        txtLowPowerValue = findViewById(R.id.txtLowPowerValue)
+        txtPerformanceDiagnosticsValue = findViewById(R.id.txtPerformanceDiagnosticsValue)
+        txtSavedPcValue = findViewById(R.id.txtSavedPcValue)
+        txtSavedPcSubtitle = findViewById(R.id.txtSavedPcSubtitle)
+        txtPairingValue = findViewById(R.id.txtPairingValue)
+        switchAutoConnect = findViewById(R.id.switchAutoConnect)
+        switchLowPower = findViewById(R.id.switchLowPower)
+        switchPerformanceDiagnostics = findViewById(R.id.switchPerformanceDiagnostics)
 
         edtIp = findViewById(R.id.edtIp)
         edtPort = findViewById(R.id.edtPort)
@@ -130,6 +145,15 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
 
         btnTimerSleep = findViewById(R.id.btnTimerSleep)
         btnTimerShutdown = findViewById(R.id.btnTimerShutdown)
+        spinnerEyeMode = findViewById(R.id.spinnerEyeMode)
+        seekEyeIntensity = findViewById(R.id.seekEyeIntensity)
+        txtEyeIntensity = findViewById(R.id.txtEyeIntensity)
+        seekScreenDim = findViewById(R.id.seekScreenDim)
+        txtScreenDim = findViewById(R.id.txtScreenDim)
+        switchVolumeFade = findViewById(R.id.switchVolumeFade)
+        switchRestoreBrightness = findViewById(R.id.switchRestoreBrightness)
+        btnEyeIntensityInfo = findViewById(R.id.btnEyeIntensityInfo)
+        btnScreenDimInfo = findViewById(R.id.btnScreenDimInfo)
 
         edtMac = findViewById(R.id.edtMac)
         edtBroadcast = findViewById(R.id.edtBroadcast)
@@ -141,28 +165,112 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
         wolHeader = findViewById(R.id.wolHeader)
         wolContent = findViewById(R.id.wolContent)
         wolArrow = findViewById(R.id.wolArrow)
+        manualConnectionHeader = findViewById(R.id.manualConnectionHeader)
+        manualConnectionContent = findViewById(R.id.manualConnectionContent)
+        manualConnectionArrow = findViewById(R.id.manualConnectionArrow)
+        btnProtocolInfo = findViewById(R.id.btnProtocolInfo)
+        btnUnsupportedInfo = findViewById(R.id.btnUnsupportedInfo)
+        switchClipboardSync = findViewById(R.id.switchClipboardSync)
+        txtClipboardSyncValue = findViewById(R.id.txtClipboardSyncValue)
+        switchPowerActions = findViewById(R.id.switchPowerActions)
+        txtPowerActionsValue = findViewById(R.id.txtPowerActionsValue)
+        spinnerVolumeButtonMode = findViewById(R.id.spinnerVolumeButtonMode)
+        txtVolumeButtonModeValue = findViewById(R.id.txtVolumeButtonModeValue)
+        switchNotifications = findViewById(R.id.switchNotifications)
+        txtNotificationsValue = findViewById(R.id.txtNotificationsValue)
 
         // Load prefs
         val prefs = getSharedPreferences(prefsName, MODE_PRIVATE)
-        edtIp.setText(prefs.getString(keyIp, "") ?: "")
-        edtPort.setText(prefs.getString(keyPort, "5050") ?: "5050")
+        edtIp.setText(prefs.getString(DesklyPrefs.KEY_IP, "") ?: "")
+        edtPort.setText(prefs.getString(DesklyPrefs.KEY_PORT, "5050") ?: "5050")
+        switchAutoConnect.isChecked = DesklyPrefs.getAutoConnect(this)
+        txtAutoConnectValue.text = if (switchAutoConnect.isChecked) "On" else "Off"
+        switchLowPower.isChecked = DesklyPrefs.getLowPowerMode(this)
+        txtLowPowerValue.text = if (switchLowPower.isChecked) "On" else "Off"
+        switchPerformanceDiagnostics.isChecked = DesklyPrefs.getPerformanceDiagnostics(this)
+        txtPerformanceDiagnosticsValue.text = if (switchPerformanceDiagnostics.isChecked) "On" else "Off"
+        switchClipboardSync.isChecked = DesklyPrefs.getClipboardSyncEnabled(this)
+        txtClipboardSyncValue.text = if (switchClipboardSync.isChecked) "On" else "Off"
+        switchPowerActions.isChecked = DesklyPrefs.getPowerActionsEnabled(this)
+        txtPowerActionsValue.text = if (switchPowerActions.isChecked) "On" else "Off"
+        switchNotifications.isChecked = DesklyPrefs.getNotificationsEnabled(this)
+        txtNotificationsValue.text = if (switchNotifications.isChecked) "On" else "Off"
+        setupVolumeButtonModeSpinner(DesklyPrefs.getVolumeButtonMode(this))
 
         selectedTimerAction = prefs.getString(keyTimerAction, "sleep") ?: "sleep"
         applyTimerActionUi()
+        setupEyeProtectorPrefs()
 
         // WOL prefs
         edtMac.setText(prefs.getString(keyMac, "AA:BB:CC:DD:EE:FF"))
         edtBroadcast.setText(prefs.getString(keyBroadcast, "192.168.1.255"))
         edtWolPort.setText(prefs.getString(keyWolPort, "9"))
-        txtInfo.text = "Wake-on-LAN pošle magic packet na broadcast. PC musí mať povolené WOL v BIOS + adaptéri."
+        txtInfo.text = "Requires Wake-on-LAN enabled on the PC."
 
         // ✅ nastav úvodný stav dropdownu (z wolExpanded)
         applyWolExpandedUi()
+        applyManualExpandedUi()
 
         // ✅ toggle po kliknutí na hlavičku
         wolHeader.setOnClickListener {
             wolExpanded = !wolExpanded
             applyWolExpandedUi()
+        }
+        manualConnectionHeader.setOnClickListener {
+            manualExpanded = !manualExpanded
+            applyManualExpandedUi()
+        }
+
+        switchAutoConnect.setOnCheckedChangeListener { _, isChecked ->
+            DesklyPrefs.setAutoConnect(this, isChecked)
+            txtAutoConnectValue.text = if (isChecked) "On" else "Off"
+        }
+
+        switchLowPower.setOnCheckedChangeListener { _, isChecked ->
+            DesklyPrefs.setLowPowerMode(this, isChecked)
+            txtLowPowerValue.text = if (isChecked) "On" else "Off"
+            DesklyClient.configurePerformance(
+                PerformancePolicy(lowPowerEnabled = isChecked, foreground = true),
+                DesklyPrefs.getPerformanceDiagnostics(this)
+            )
+        }
+
+        switchPerformanceDiagnostics.setOnCheckedChangeListener { _, isChecked ->
+            DesklyPrefs.setPerformanceDiagnostics(this, isChecked)
+            txtPerformanceDiagnosticsValue.text = if (isChecked) "On" else "Off"
+            DesklyClient.configurePerformance(
+                PerformancePolicy(lowPowerEnabled = DesklyPrefs.getLowPowerMode(this), foreground = true),
+                isChecked
+            )
+        }
+
+        switchRestoreBrightness.setOnCheckedChangeListener { _, isChecked ->
+            DesklyPrefs.setRestoreBrightnessOnExit(this, isChecked)
+        }
+        switchClipboardSync.setOnCheckedChangeListener { _, isChecked ->
+            DesklyPrefs.setClipboardSyncEnabled(this, isChecked)
+            txtClipboardSyncValue.text = if (isChecked) "On" else "Off"
+        }
+        switchPowerActions.setOnCheckedChangeListener { _, isChecked ->
+            DesklyPrefs.setPowerActionsEnabled(this, isChecked)
+            txtPowerActionsValue.text = if (isChecked) "On" else "Off"
+        }
+        switchNotifications.setOnCheckedChangeListener { _, isChecked ->
+            DesklyPrefs.setNotificationsEnabled(this, isChecked)
+            txtNotificationsValue.text = if (isChecked) "On" else "Off"
+        }
+
+        btnEyeIntensityInfo.setOnClickListener {
+            showInfo("Intensity", "Controls the strength of the color filter.")
+        }
+        btnScreenDimInfo.setOnClickListener {
+            showInfo("Screen Dim", "Darkens the screen without changing color temperature.")
+        }
+        btnProtocolInfo.setOnClickListener {
+            showInfo("Protocol Info", "Deskly uses local TCP JSON on port 5050 and UDP discovery on port 5051.")
+        }
+        btnUnsupportedInfo.setOnClickListener {
+            showInfo("Unsupported Features", "Some controls depend on Windows, display hardware, permissions, or power plan support.")
         }
 
         // --- Connection actions ---
@@ -184,7 +292,7 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
             DesklyClient.connect(ip, port) { ok, err ->
                 runOnUiThread {
                     busy = false
-                    if (!ok) toast(err ?: "Connect failed")
+                    if (!ok) toast("Command Failed")
                     updateUiState()
 
                     // auto-auth if token exists
@@ -193,8 +301,9 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
                         DesklyClient.setToken(token)
                         DesklyClient.auth(token) { okAuth, msg ->
                             runOnUiThread {
-                                if (!okAuth) toast(msg)
+                                if (!okAuth) toast("Auth Failed")
                                 else afterAuthInit(token)
+                                renderState()
                                 updateUiState()
                             }
                         }
@@ -209,7 +318,7 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
 
         btnPing.setOnClickListener {
             DesklyClient.pingSecure { ok, msg ->
-                runOnUiThread { toast(if (ok) "pong ✅" else "ping ❌: $msg") }
+                runOnUiThread { toast(if (ok) "Done" else "Command Failed: $msg") }
             }
         }
 
@@ -233,7 +342,7 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
                     runOnUiThread {
                         busy = false
                         if (!okPair || token.isNullOrBlank()) {
-                            toast(if (msg.isNotBlank()) msg else "Pairing failed")
+                            toast("Command Failed")
                             updateUiState()
                             return@runOnUiThread
                         }
@@ -244,8 +353,9 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
                         // auth
                         DesklyClient.auth(token) { okAuth, authMsg ->
                             runOnUiThread {
-                                if (!okAuth) toast("AUTH ❌: $authMsg")
+                                if (!okAuth) toast("Auth Failed: $authMsg")
                                 else afterAuthInit(token)
+                                renderState()
                                 updateUiState()
                             }
                         }
@@ -259,7 +369,7 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
                     runOnUiThread {
                         if (!ok) {
                             busy = false
-                            toast(err ?: "Connect failed")
+                            toast("Command Failed")
                             updateUiState()
                             return@runOnUiThread
                         }
@@ -270,12 +380,10 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
         }
 
         btnClearToken.setOnClickListener {
-            setTokenForCurrentDevice(null)
-            toast("Token cleared")
-            updateUiState()
+            confirmForgetPairing()
         }
 
-        // --- Timer action selection ---
+        // --- Default timer selection ---
         btnTimerSleep.setOnClickListener {
             selectedTimerAction = "sleep"
             prefs.edit().putString(keyTimerAction, selectedTimerAction).apply()
@@ -288,6 +396,10 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
             applyTimerActionUi()
         }
 
+        switchVolumeFade.setOnCheckedChangeListener { _, isChecked ->
+            DesklyPrefs.setFadeOutShutdown(this, isChecked)
+        }
+
         // --- WOL send ---
         btnSendWol.setOnClickListener {
             val macStr = edtMac.text.toString().trim()
@@ -295,15 +407,15 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
             val port = edtWolPort.text.toString().trim().toIntOrNull() ?: 9
 
             if (bc.isBlank()) {
-                toast("Zadaj broadcast IP (napr. 192.168.1.255).")
+                toast("Broadcast IP required")
                 return@setOnClickListener
             }
             if (port !in 1..65535) {
-                toast("Port musí byť 1–65535 (default 9).")
+                toast("Invalid port")
                 return@setOnClickListener
             }
             if (normalizeMac(macStr) == null) {
-                toast("MAC musí byť AA:BB:CC:DD:EE:FF (alebo AABBCCDDEEFF).")
+                toast("Invalid MAC")
                 return@setOnClickListener
             }
 
@@ -316,7 +428,7 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
             lifecycleScope.launch(Dispatchers.IO) {
                 val ok = sendWol(macStr, bc, port)
                 withContext(Dispatchers.Main) {
-                    toast(if (ok) "WOL sent ✅" else "WOL failed ❌")
+                    toast(if (ok) "Done" else "Command Failed")
                 }
             }
         }
@@ -324,6 +436,26 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
         // Initial status
         renderState()
         updateUiState()
+    }
+
+    private fun forgetPairing() {
+        setTokenForCurrentDevice(null)
+        DesklyClient.close("token cleared")
+        toast("Done")
+        renderState()
+        updateUiState()
+    }
+
+    private fun confirmForgetPairing() {
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Forget Pairing?")
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Forget") { _, _ -> forgetPairing() }
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setTextColor(getColor(R.color.danger))
+        }
+        dialog.show()
     }
 
     override fun onDestroy() {
@@ -355,23 +487,69 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
             val ok = json.optBoolean("ok", true)
             if (!ok) {
                 val msg = json.optString("message", "")
-                if (msg.isNotBlank()) toast(msg)
+                if (msg.isNotBlank()) toast("Command Failed")
             }
         }
     }
 
     private fun renderState() {
         val s = DesklyClient.state
-        txtConnStatus.text = if (s.connected) "Connected" else "Disconnected"
-        txtAuthStatus.text = if (s.authorized) "Authorized" else "Unauthorized"
+        val saved = DesklyPrefs.getSavedServer(this)
+        val prefs = getSharedPreferences(prefsName, MODE_PRIVATE)
+        val authRejected = s.lastError?.contains("Unauthorized", ignoreCase = true) == true
+        val viewState = ConnectionStatusModel.build(
+            state = s,
+            savedPcName = prefs.getString(DesklyPrefs.KEY_DEVICE_NAME, null),
+            savedIp = saved?.ip,
+            savedPort = saved?.port,
+            hasToken = DesklyPrefs.hasToken(this),
+            authRejected = authRejected
+        )
+        txtConnStatus.text = viewState.status
+        txtAuthStatus.text = viewState.auth
+        txtConnStatus.setBackgroundResource(
+            when {
+                s.authorized -> R.drawable.bg_status_connected
+                s.connecting -> R.drawable.bg_status_warning
+                authRejected -> R.drawable.bg_status_danger
+                else -> R.drawable.bg_status_offline
+            }
+        )
+
+        txtSavedPcValue.text = viewState.pcName
+        txtSavedPcSubtitle.text = "${viewState.address} - ${viewState.connectionType.name}"
+        txtPairingValue.text = when {
+            authRejected -> "Auth failed"
+            DesklyPrefs.hasToken(this) -> "Paired"
+            else -> "Required"
+        }
+        txtAutoConnectValue.text = if (DesklyPrefs.getAutoConnect(this)) "On" else "Off"
+    }
+
+    private fun connectionStatusText(s: DesklyClient.State): String {
+        return when {
+            s.connecting -> "Searching"
+            s.connected -> "Connected"
+            else -> "Offline"
+        }
+    }
+
+    private fun authStatusText(s: DesklyClient.State): String {
+        return when {
+            s.authorized -> "Authorized"
+            s.authenticating -> "Searching"
+            s.lastError?.contains("Unauthorized", ignoreCase = true) == true -> "Auth failed"
+            s.connected && getTokenRaw().isNullOrBlank() -> "Pair Required"
+            else -> "Pair Required"
+        }
     }
 
     private fun updateUiState() {
         val s = DesklyClient.state
         val hasToken = !getTokenRaw().isNullOrBlank()
 
-        btnConnect.isEnabled = !busy
-        btnDisconnect.isEnabled = s.connected && !busy
+        btnConnect.isEnabled = !busy && !s.connecting && !s.authenticating
+        btnDisconnect.isEnabled = (s.connected || s.connecting) && !busy
         btnPing.isEnabled = s.authorized && !busy
 
         btnPair.isEnabled = !busy
@@ -381,6 +559,121 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
     private fun applyTimerActionUi() {
         btnTimerSleep.alpha = if (selectedTimerAction == "sleep") 1.0f else 0.55f
         btnTimerShutdown.alpha = if (selectedTimerAction == "shutdown") 1.0f else 0.55f
+    }
+
+    private fun setupEyeProtectorPrefs() {
+        val modeAdapter = object : ArrayAdapter<String>(
+            this,
+            android.R.layout.simple_spinner_item,
+            DesklyPrefs.eyeModes.map { it.displayText }
+        ) {
+            override fun getView(position: Int, convertView: View?, parent: android.view.ViewGroup): View {
+                val v = super.getView(position, convertView, parent) as TextView
+                v.setTextColor(getColor(R.color.text_primary))
+                v.textSize = 14f
+                v.setSingleLine(false)
+                return v
+            }
+
+            override fun getDropDownView(position: Int, convertView: View?, parent: android.view.ViewGroup): View {
+                val v = super.getDropDownView(position, convertView, parent) as TextView
+                v.setTextColor(getColor(R.color.text_primary))
+                v.setBackgroundColor(getColor(R.color.card_high))
+                v.textSize = 14f
+                v.setPadding(24, 18, 24, 18)
+                v.setSingleLine(false)
+                return v
+            }
+        }
+        modeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerEyeMode.adapter = modeAdapter
+
+        val currentMode = DesklyPrefs.getEyeMode(this)
+        val selectedIndex = DesklyPrefs.eyeModes.indexOfFirst { it.id == currentMode.id }.coerceAtLeast(0)
+        spinnerEyeMode.setSelection(selectedIndex)
+        spinnerEyeMode.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                DesklyPrefs.setEyeMode(this@SettingsActivity, DesklyPrefs.eyeModes[position].id)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+
+        val intensity = DesklyPrefs.getEyeIntensity(this)
+        seekEyeIntensity.progress = intensity
+        txtEyeIntensity.text = "$intensity%"
+        seekEyeIntensity.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar?, progress: Int, fromUser: Boolean) {
+                val v = progress.coerceIn(0, 100)
+                txtEyeIntensity.text = "$v%"
+                if (fromUser) DesklyPrefs.setEyeIntensity(this@SettingsActivity, v)
+            }
+
+            override fun onStartTrackingTouch(sb: SeekBar?) {}
+            override fun onStopTrackingTouch(sb: SeekBar?) {
+                DesklyPrefs.setEyeIntensity(this@SettingsActivity, seekEyeIntensity.progress.coerceIn(0, 100))
+            }
+        })
+
+        val dim = DesklyPrefs.getScreenDim(this)
+        seekScreenDim.progress = dim
+        txtScreenDim.text = "$dim%"
+        seekScreenDim.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar?, progress: Int, fromUser: Boolean) {
+                val v = progress.coerceIn(0, 100)
+                txtScreenDim.text = "$v%"
+                if (fromUser) DesklyPrefs.setScreenDim(this@SettingsActivity, v)
+            }
+
+            override fun onStartTrackingTouch(sb: SeekBar?) {}
+            override fun onStopTrackingTouch(sb: SeekBar?) {
+                DesklyPrefs.setScreenDim(this@SettingsActivity, seekScreenDim.progress.coerceIn(0, 100))
+            }
+        })
+
+        switchVolumeFade.isChecked = DesklyPrefs.getFadeOutShutdown(this)
+        switchRestoreBrightness.isChecked = DesklyPrefs.getRestoreBrightnessOnExit(this)
+    }
+
+    private fun setupVolumeButtonModeSpinner(initialMode: String) {
+        val labels = arrayOf("Phone Volume", "PC Volume")
+        val adapter = object : ArrayAdapter<String>(
+            this,
+            android.R.layout.simple_spinner_item,
+            labels
+        ) {
+            override fun getView(position: Int, convertView: View?, parent: android.view.ViewGroup): View {
+                val v = super.getView(position, convertView, parent) as TextView
+                v.setTextColor(getColor(R.color.text_primary))
+                v.textSize = 14f
+                return v
+            }
+
+            override fun getDropDownView(position: Int, convertView: View?, parent: android.view.ViewGroup): View {
+                val v = super.getDropDownView(position, convertView, parent) as TextView
+                v.setTextColor(getColor(R.color.text_primary))
+                v.setBackgroundColor(getColor(R.color.card_high))
+                v.textSize = 14f
+                v.setPadding(24, 18, 24, 18)
+                return v
+            }
+        }
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerVolumeButtonMode.adapter = adapter
+
+        val selectedIndex = if (DesklyPrefs.normalizeVolumeButtonMode(initialMode) == "pc") 1 else 0
+        spinnerVolumeButtonMode.setSelection(selectedIndex)
+        txtVolumeButtonModeValue.text = labels[selectedIndex]
+        spinnerVolumeButtonMode.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val safeIndex = position.coerceIn(0, labels.lastIndex)
+                val mode = if (safeIndex == 1) "pc" else "phone"
+                DesklyPrefs.setVolumeButtonMode(this@SettingsActivity, mode)
+                txtVolumeButtonModeValue.text = labels[safeIndex]
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
     }
 
     private fun afterAuthInit(token: String) {
@@ -394,7 +687,20 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
 
     private fun applyWolExpandedUi() {
         wolContent.visibility = if (wolExpanded) View.VISIBLE else View.GONE
-        wolArrow.text = if (wolExpanded) "▴" else "▾"
+        wolArrow.text = if (wolExpanded) "^" else "v"
+    }
+
+    private fun applyManualExpandedUi() {
+        manualConnectionContent.visibility = if (manualExpanded) View.VISIBLE else View.GONE
+        manualConnectionArrow.text = if (manualExpanded) "^" else "v"
+    }
+
+    private fun showInfo(title: String, message: String) {
+        AlertDialog.Builder(this)
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton("OK", null)
+            .show()
     }
 
     private fun toast(s: String) {

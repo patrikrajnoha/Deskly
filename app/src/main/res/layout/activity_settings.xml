@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/bg_screen"
     android:fillViewport="true"
-    android:background="#121212"
+    android:overScrollMode="never"
     android:padding="16dp">
 
     <LinearLayout
@@ -11,275 +13,956 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- TITLE -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingBottom="14dp"
             android:text="Settings"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/text_primary"
             android:textSize="22sp"
-            android:textStyle="bold"
-            android:paddingBottom="12dp" />
+            android:textStyle="bold" />
 
-        <!-- STATUS -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_pill_tile"
-            android:padding="14dp"
-            android:orientation="vertical">
+            android:background="@drawable/bg_tile"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                style="@style/DesklySectionTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="PC &amp; Pairing" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_setting_row"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="4dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="Auto Connect"
+                    android:src="@drawable/ic_link"
+                    app:tint="@color/colorPrimary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/DesklySettingTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Auto" />
+
+                    <TextView
+                        android:id="@+id/txtAutoConnectValue"
+                        style="@style/DesklySettingValue"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="On" />
+                </LinearLayout>
+
+                <Switch
+                    android:id="@+id/switchAutoConnect"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:contentDescription="Auto Connect" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="@drawable/bg_setting_row"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="4dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="Low Power"
+                    android:src="@drawable/ic_speed"
+                    app:tint="@color/colorPrimary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/DesklySettingTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Low Power" />
+
+                    <TextView
+                        android:id="@+id/txtLowPowerValue"
+                        style="@style/DesklySettingValue"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Off" />
+                </LinearLayout>
+
+                <Switch
+                    android:id="@+id/switchLowPower"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:contentDescription="Low Power" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="@drawable/bg_setting_row"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="4dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="Performance Diagnostics"
+                    android:src="@drawable/ic_info"
+                    app:tint="@color/colorPrimary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/DesklySettingTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Diagnostics" />
+
+                    <TextView
+                        android:id="@+id/txtPerformanceDiagnosticsValue"
+                        style="@style/DesklySettingValue"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Off" />
+                </LinearLayout>
+
+                <Switch
+                    android:id="@+id/switchPerformanceDiagnostics"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:contentDescription="Performance Diagnostics" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="64dp"
+                android:background="@drawable/bg_setting_row"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="4dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="Saved PC"
+                    android:src="@drawable/ic_display"
+                    app:tint="@color/colorPrimary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/DesklySettingTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="PC" />
+
+                    <TextView
+                        android:id="@+id/txtSavedPcValue"
+                        style="@style/DesklySettingValue"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="No PC selected" />
+
+                    <TextView
+                        android:id="@+id/txtSavedPcSubtitle"
+                        style="@style/DesklySettingValue"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="IP:port" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="64dp"
+                android:background="@drawable/bg_setting_row"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="4dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="Pairing"
+                    android:src="@drawable/ic_lock"
+                    app:tint="@color/colorPrimary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/DesklySettingTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Pair" />
+
+                    <TextView
+                        android:id="@+id/txtPairingValue"
+                        style="@style/DesklySettingValue"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Required" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="horizontal">
+
+                        <EditText
+                            android:id="@+id/edtPin"
+                            android:layout_width="0dp"
+                            android:layout_height="48dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_input"
+                            android:hint="PIN"
+                            android:inputType="number"
+                            android:padding="14dp"
+                            android:textColor="@color/text_primary"
+                            android:textColorHint="@color/text_muted" />
+
+                        <Space android:layout_width="10dp" android:layout_height="1dp" />
+
+                        <Button
+                            android:id="@+id/btnPair"
+                            style="@style/DesklyPillButton"
+                            android:layout_width="96dp"
+                            android:layout_height="48dp"
+                            android:background="@drawable/bg_btn_primary"
+                            android:text="Pair"
+                            android:textAllCaps="false" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/txtConnStatus"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Disconnected"
-                android:textColor="#FFFFFF"
-                android:textStyle="bold"
-                android:textSize="16sp" />
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_status_offline"
+                android:text="Offline"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/txtAuthStatus"
+                style="@style/DesklyFieldLabel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Unauthorized"
-                android:textColor="#c6c6c6"
-                android:paddingTop="6dp" />
+                android:layout_marginTop="6dp"
+                android:text="Unauthorized" />
         </LinearLayout>
 
-        <Space android:layout_width="1dp" android:layout_height="14dp"/>
+        <Space android:layout_width="1dp" android:layout_height="12dp" />
 
-        <!-- CONNECTION -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_pill_tile"
-            android:padding="14dp"
-            android:orientation="vertical">
+            android:background="@drawable/bg_tile"
+            android:orientation="vertical"
+            android:padding="16dp">
 
             <TextView
-                android:text="Connection"
-                android:textColor="#FFFFFF"
-                android:textStyle="bold"
-                android:paddingBottom="10dp"
+                style="@style/DesklySectionTitle"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:text="Control &amp; Security" />
 
             <LinearLayout
-                android:orientation="horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="56dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_setting_row"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="4dp">
 
-                <EditText
-                    android:id="@+id/edtIp"
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="Clipboard Sync"
+                    android:src="@drawable/ic_link"
+                    app:tint="@color/colorPrimary" />
+
+                <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="2"
-                    android:hint="IP"
-                    android:textColor="#FFFFFF"
-                    android:textColorHint="#c6c6c6"
-                    android:background="@drawable/bg_pill_input"
-                    android:padding="14dp"/>
-
-                <Space android:layout_width="10dp" android:layout_height="1dp"/>
-
-                <EditText
-                    android:id="@+id/edtPort"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
                     android:layout_weight="1"
-                    android:hint="Port"
-                    android:inputType="number"
-                    android:textColor="#FFFFFF"
-                    android:textColorHint="#c6c6c6"
-                    android:background="@drawable/bg_pill_input"
-                    android:padding="14dp"/>
-            </LinearLayout>
+                    android:orientation="vertical">
 
-            <Space android:layout_height="10dp" android:layout_width="1dp"/>
+                    <TextView
+                        style="@style/DesklySettingTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Clipboard Sync" />
+
+                    <TextView
+                        android:id="@+id/txtClipboardSyncValue"
+                        style="@style/DesklySettingValue"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Off" />
+                </LinearLayout>
+
+                <Switch
+                    android:id="@+id/switchClipboardSync"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:contentDescription="Clipboard Sync" />
+            </LinearLayout>
 
             <LinearLayout
-                android:orientation="horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="56dp"
+                android:background="@drawable/bg_setting_row"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="4dp">
 
-                <Button
-                    android:id="@+id/btnConnect"
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="Power Actions"
+                    android:src="@drawable/ic_power"
+                    app:tint="@color/colorPrimary" />
+
+                <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="52dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
                     android:layout_weight="1"
-                    android:text="Connect"
-                    android:textStyle="bold"
-                    android:textColor="#FFFFFF"
-                    android:background="@drawable/bg_pill_btn"/>
+                    android:orientation="vertical">
 
-                <Space android:layout_width="10dp" android:layout_height="1dp"/>
+                    <TextView
+                        style="@style/DesklySettingTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Power Actions" />
 
-                <Button
-                    android:id="@+id/btnDisconnect"
-                    android:layout_width="0dp"
-                    android:layout_height="52dp"
-                    android:layout_weight="1"
-                    android:text="Disconnect"
-                    android:textStyle="bold"
-                    android:textColor="#FFFFFF"
-                    android:background="@drawable/bg_pill_btn"/>
+                    <TextView
+                        android:id="@+id/txtPowerActionsValue"
+                        style="@style/DesklySettingValue"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="On" />
+                </LinearLayout>
+
+                <Switch
+                    android:id="@+id/switchPowerActions"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:contentDescription="Power Actions" />
             </LinearLayout>
 
-            <Space android:layout_height="10dp" android:layout_width="1dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="@drawable/bg_setting_row"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="4dp">
 
-            <Button
-                android:id="@+id/btnPing"
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="Volume Buttons"
+                    android:src="@drawable/ic_volume_up"
+                    app:tint="@color/colorPrimary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/DesklySettingTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Volume Buttons" />
+
+                    <TextView
+                        android:id="@+id/txtVolumeButtonModeValue"
+                        style="@style/DesklySettingValue"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Phone Volume" />
+                </LinearLayout>
+
+                <Spinner
+                    android:id="@+id/spinnerVolumeButtonMode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:contentDescription="Volume Button Mode"
+                    android:spinnerMode="dialog" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="@drawable/bg_setting_row"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="4dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="Notifications"
+                    android:src="@drawable/ic_info"
+                    app:tint="@color/colorPrimary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/DesklySettingTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Notifications" />
+
+                    <TextView
+                        android:id="@+id/txtNotificationsValue"
+                        style="@style/DesklySettingValue"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="On" />
+                </LinearLayout>
+
+                <Switch
+                    android:id="@+id/switchNotifications"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:contentDescription="Notifications" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <Space android:layout_width="1dp" android:layout_height="12dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_tile"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                style="@style/DesklySectionTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Night Mode" />
+
+            <TextView
+                style="@style/DesklyFieldLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Default Mode" />
+
+            <Spinner
+                android:id="@+id/spinnerEyeMode"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
-                android:text="Ping"
-                android:textStyle="bold"
-                android:textColor="#FFFFFF"
-                android:background="@drawable/bg_pill_btn"/>
-        </LinearLayout>
-
-        <Space android:layout_height="14dp" android:layout_width="1dp"/>
-
-        <!-- PAIRING -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_pill_tile"
-            android:padding="14dp"
-            android:orientation="vertical">
-
-            <TextView
-                android:text="Pairing"
-                android:textColor="#FFFFFF"
-                android:textStyle="bold"
-                android:paddingBottom="10dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-
-            <EditText
-                android:id="@+id/edtPin"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:hint="6-digit PIN"
-                android:inputType="number"
-                android:textColor="#FFFFFF"
-                android:textColorHint="#c6c6c6"
-                android:background="@drawable/bg_pill_input"
-                android:padding="14dp"/>
-
-            <Space android:layout_height="10dp" android:layout_width="1dp"/>
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_input"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:spinnerMode="dropdown" />
 
             <LinearLayout
-                android:orientation="horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-                <Button
-                    android:id="@+id/btnPair"
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="Intensity"
+                    android:src="@drawable/ic_tune"
+                    app:tint="@color/colorPrimary" />
+
+                <TextView
+                    style="@style/DesklySettingTitle"
                     android:layout_width="0dp"
-                    android:layout_height="52dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
                     android:layout_weight="1"
-                    android:text="Pair"
-                    android:textStyle="bold"
-                    android:textColor="#FFFFFF"
-                    android:background="@drawable/bg_pill_btn"/>
+                    android:text="Intensity" />
 
-                <Space android:layout_width="10dp" android:layout_height="1dp"/>
+                <TextView
+                    android:id="@+id/txtEyeIntensity"
+                    android:layout_width="56dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:text="60%"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
 
-                <Button
-                    android:id="@+id/btnClearToken"
+                <ImageButton
+                    android:id="@+id/btnEyeIntensityInfo"
+                    style="@style/DesklyIconButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="8dp"
+                    android:contentDescription="Intensity info"
+                    android:src="@drawable/ic_info"
+                    app:tint="@color/button_text" />
+            </LinearLayout>
+
+            <SeekBar
+                android:id="@+id/seekEyeIntensity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="100"
+                android:progress="60"
+                android:progressBackgroundTint="@color/card_stroke"
+                android:progressTint="@color/accent"
+                android:thumbTint="@color/accent" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="16dp"
+                android:background="@color/card_stroke" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="Screen Dim"
+                    android:src="@drawable/ic_dim"
+                    app:tint="@color/colorPrimary" />
+
+                <TextView
+                    style="@style/DesklySettingTitle"
                     android:layout_width="0dp"
-                    android:layout_height="52dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
                     android:layout_weight="1"
-                    android:text="Clear token"
-                    android:textStyle="bold"
-                    android:textColor="#FFFFFF"
-                    android:background="@drawable/bg_pill_btn"/>
+                    android:text="Screen Dim" />
+
+                <TextView
+                    android:id="@+id/txtScreenDim"
+                    android:layout_width="56dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:text="20%"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <ImageButton
+                    android:id="@+id/btnScreenDimInfo"
+                    style="@style/DesklyIconButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="8dp"
+                    android:contentDescription="Screen Dim info"
+                    android:src="@drawable/ic_info"
+                    app:tint="@color/button_text" />
+            </LinearLayout>
+
+            <SeekBar
+                android:id="@+id/seekScreenDim"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="100"
+                android:progress="20"
+                android:progressBackgroundTint="@color/card_stroke"
+                android:progressTint="@color/accent"
+                android:thumbTint="@color/accent" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="16dp"
+                android:background="@color/card_stroke" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/DesklySettingTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Restore Brightness" />
+
+                    <TextView
+                        style="@style/DesklySettingSubtitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="On app exit" />
+                </LinearLayout>
+
+                <Switch
+                    android:id="@+id/switchRestoreBrightness"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:contentDescription="Restore brightness on exit" />
             </LinearLayout>
         </LinearLayout>
 
-        <Space android:layout_height="14dp" android:layout_width="1dp"/>
+        <Space android:layout_width="1dp" android:layout_height="12dp" />
 
-        <!-- TIMER -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_pill_tile"
-            android:padding="14dp"
-            android:orientation="vertical">
+            android:background="@drawable/bg_tile"
+            android:orientation="vertical"
+            android:padding="16dp">
 
             <TextView
-                android:text="Timer action"
-                android:textColor="#FFFFFF"
-                android:textStyle="bold"
-                android:paddingBottom="10dp"
+                style="@style/DesklySectionTitle"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:text="Shutdown" />
+
+            <TextView
+                style="@style/DesklyFieldLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Default Timer" />
 
             <LinearLayout
-                android:orientation="horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
 
                 <Button
                     android:id="@+id/btnTimerSleep"
+                    style="@style/DesklyPillButton"
                     android:layout_width="0dp"
-                    android:layout_height="52dp"
+                    android:layout_height="48dp"
                     android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
                     android:text="Sleep"
-                    android:textStyle="bold"
-                    android:textColor="#FFFFFF"
-                    android:background="@drawable/bg_pill_btn"/>
+                    android:textAllCaps="false" />
 
-                <Space android:layout_width="10dp" android:layout_height="1dp"/>
+                <Space android:layout_width="10dp" android:layout_height="1dp" />
 
                 <Button
                     android:id="@+id/btnTimerShutdown"
+                    style="@style/DesklyPillButton"
                     android:layout_width="0dp"
-                    android:layout_height="52dp"
+                    android:layout_height="48dp"
                     android:layout_weight="1"
+                    android:background="@drawable/bg_btn_danger"
                     android:text="Shutdown"
-                    android:textStyle="bold"
-                    android:textColor="#FFFFFF"
-                    android:background="@drawable/bg_pill_btn"/>
+                    android:textAllCaps="false" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="Volume Fade"
+                    android:src="@drawable/ic_volume_up"
+                    app:tint="@color/colorPrimary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/DesklySettingTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Volume Fade" />
+
+                    <TextView
+                        style="@style/DesklySettingValue"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Before shutdown" />
+                </LinearLayout>
+
+                <Switch
+                    android:id="@+id/switchVolumeFade"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:contentDescription="Volume Fade" />
             </LinearLayout>
         </LinearLayout>
 
-        <Space android:layout_height="14dp" android:layout_width="1dp"/>
+        <Space android:layout_width="1dp" android:layout_height="12dp" />
 
-        <!-- WOL (ROZBAĽOVACIE) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_pill_tile"
-            android:padding="14dp"
-            android:orientation="vertical">
+            android:background="@drawable/bg_tile"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                style="@style/DesklySectionTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Advanced" />
+
+            <LinearLayout
+                android:id="@+id/manualConnectionHeader"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_setting_row"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="4dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="Manual Connection"
+                    android:src="@drawable/ic_link"
+                    app:tint="@color/colorPrimary" />
+
+                <TextView
+                    style="@style/DesklySettingTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:text="Manual Connection" />
+
+                <TextView
+                    android:id="@+id/manualConnectionArrow"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:gravity="center"
+                    android:text="v"
+                    android:textColor="@color/text_muted"
+                    android:textSize="16sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/manualConnectionContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="10dp"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <EditText
+                        android:id="@+id/edtIp"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="2"
+                        android:background="@drawable/bg_input"
+                        android:hint="IP"
+                        android:inputType="text"
+                        android:padding="14dp"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_muted" />
+
+                    <Space android:layout_width="10dp" android:layout_height="1dp" />
+
+                    <EditText
+                        android:id="@+id/edtPort"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_input"
+                        android:hint="Port"
+                        android:inputType="number"
+                        android:padding="14dp"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_muted" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btnConnect"
+                        style="@style/DesklyPillButton"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_btn_primary"
+                        android:text="Connect"
+                        android:textAllCaps="false" />
+
+                    <Space android:layout_width="10dp" android:layout_height="1dp" />
+
+                    <Button
+                        android:id="@+id/btnDisconnect"
+                        style="@style/DesklyPillButton"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_btn"
+                        android:text="Disconnect"
+                        android:textAllCaps="false" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnPing"
+                style="@style/DesklyPillButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_btn"
+                android:text="Ping"
+                android:textAllCaps="false" />
+
+            <Button
+                android:id="@+id/btnClearToken"
+                style="@style/DesklyPillButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_btn_danger"
+                android:text="Forget Pairing"
+                android:textAllCaps="false" />
+
+            <Button
+                android:id="@+id/btnProtocolInfo"
+                style="@style/DesklyPillButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_btn"
+                android:text="Protocol"
+                android:textAllCaps="false" />
+
+            <Button
+                android:id="@+id/btnUnsupportedInfo"
+                style="@style/DesklyPillButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_btn"
+                android:text="Unsupported"
+                android:textAllCaps="false" />
 
             <LinearLayout
                 android:id="@+id/wolHeader"
-                android:orientation="horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="56dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_setting_row"
                 android:clickable="true"
                 android:focusable="true"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="4dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="Wake PC"
+                    android:src="@drawable/ic_power"
+                    app:tint="@color/colorPrimary" />
 
                 <TextView
+                    style="@style/DesklySettingTitle"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
                     android:layout_weight="1"
-                    android:text="Wake-on-LAN"
-                    android:textColor="#FFFFFF"
-                    android:textStyle="bold"
-                    android:textSize="16sp"/>
+                    android:text="Wake PC" />
 
                 <TextView
                     android:id="@+id/wolArrow"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="▾"
-                    android:textColor="#c6c6c6"
-                    android:textSize="18sp"/>
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:gravity="center"
+                    android:text="v"
+                    android:textColor="@color/text_muted"
+                    android:textSize="16sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -287,61 +970,61 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:visibility="gone"
-                android:paddingTop="10dp">
+                android:paddingTop="10dp"
+                android:visibility="gone">
 
                 <TextView
                     android:id="@+id/txtInfo"
+                    style="@style/DesklyFieldLabel"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textColor="#c6c6c6"/>
+                    android:layout_height="wrap_content" />
 
                 <EditText
                     android:id="@+id/edtMac"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:layout_marginTop="10dp"
-                    android:hint="MAC (AA:BB:CC:DD:EE:FF)"
-                    android:textColor="#FFFFFF"
-                    android:textColorHint="#c6c6c6"
-                    android:background="@drawable/bg_pill_input"
-                    android:padding="14dp"/>
+                    android:background="@drawable/bg_input"
+                    android:hint="MAC"
+                    android:padding="14dp"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_muted" />
 
                 <EditText
                     android:id="@+id/edtBroadcast"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:layout_marginTop="10dp"
-                    android:hint="Broadcast IP (e.g. 192.168.1.255)"
-                    android:textColor="#FFFFFF"
-                    android:textColorHint="#c6c6c6"
-                    android:background="@drawable/bg_pill_input"
-                    android:padding="14dp"/>
+                    android:background="@drawable/bg_input"
+                    android:hint="Broadcast IP"
+                    android:padding="14dp"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_muted" />
 
                 <EditText
                     android:id="@+id/edtWolPort"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:layout_marginTop="10dp"
-                    android:hint="Port (default 9)"
+                    android:background="@drawable/bg_input"
+                    android:hint="Port"
                     android:inputType="number"
-                    android:textColor="#FFFFFF"
-                    android:textColorHint="#c6c6c6"
-                    android:background="@drawable/bg_pill_input"
-                    android:padding="14dp"/>
+                    android:padding="14dp"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_muted" />
 
                 <Button
                     android:id="@+id/btnSendWol"
+                    style="@style/DesklyPillButton"
                     android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginTop="12dp"
-                    android:text="Send WOL"
-                    android:textStyle="bold"
-                    android:textColor="#FFFFFF"
-                    android:background="@drawable/bg_pill_btn"/>
+                    android:layout_height="48dp"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_btn_primary"
+                    android:text="Wake PC"
+                    android:textAllCaps="false" />
             </LinearLayout>
         </LinearLayout>
 
-        <Space android:layout_height="24dp" android:layout_width="1dp"/>
+        <Space android:layout_width="1dp" android:layout_height="24dp" />
     </LinearLayout>
 </ScrollView>

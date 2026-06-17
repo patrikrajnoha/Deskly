@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 using System.Security.Principal;
 using System.Windows.Forms;
 
@@ -22,18 +23,44 @@ namespace DesklyPC
 
             _tray = new NotifyIcon
             {
-                Icon = SystemIcons.Application, // TODO: nahraď vlastnou .ico
-                Text = "DesklyPC (beží na pozadí)",
+                Icon = LoadTrayIcon(),
+                Text = "Deskly Host",
                 Visible = true
             };
 
             _tray.DoubleClick += (_, __) => ShowMainWindow();
 
             var menu = new ContextMenuStrip();
-            menu.Items.Add("Otvoriť", null, (_, __) => ShowMainWindow());
+            menu.Items.Add("Open Deskly", null, (_, __) => ShowMainWindow());
+            menu.Items.Add("Start", null, (_, __) =>
+            {
+                if (_mainForm == null || _mainForm.IsDisposed) return;
+                _mainForm.StartHost();
+            });
+            menu.Items.Add("Stop", null, (_, __) =>
+            {
+                if (_mainForm == null || _mainForm.IsDisposed) return;
+                _mainForm.StopHost();
+            });
+            menu.Items.Add("Pair", null, (_, __) =>
+            {
+                if (_mainForm == null || _mainForm.IsDisposed) return;
+                _mainForm.GeneratePairingPin();
+                ShowMainWindow();
+            });
+            menu.Items.Add("Copy setup", null, (_, __) =>
+            {
+                if (_mainForm == null || _mainForm.IsDisposed) return;
+                _mainForm.CopyPairingInfoToClipboard();
+            });
+            menu.Items.Add("Copy IP", null, (_, __) =>
+            {
+                if (_mainForm == null || _mainForm.IsDisposed) return;
+                _mainForm.CopyIpToClipboard();
+            });
             menu.Items.Add(new ToolStripSeparator());
 
-            menu.Items.Add("Ukončiť DesklyPC", null, (_, __) =>
+            menu.Items.Add("Exit", null, (_, __) =>
             {
                 IsRealExit = true;
 
@@ -120,15 +147,23 @@ namespace DesklyPC
         {
             if (_mainForm == null || _mainForm.IsDisposed) return;
 
-            _mainForm.ShowInTaskbar = true;
+            _mainForm.ShowHostWindow();
+        }
 
-            if (!_mainForm.Visible)
-                _mainForm.Show();
+        private static Icon LoadTrayIcon()
+        {
+            try
+            {
+                var iconPath = Path.Combine(AppContext.BaseDirectory, "icon.ico");
+                if (File.Exists(iconPath))
+                    return new Icon(iconPath);
+            }
+            catch
+            {
+                // fallback below
+            }
 
-            if (_mainForm.WindowState == FormWindowState.Minimized)
-                _mainForm.WindowState = FormWindowState.Normal;
-
-            _mainForm.Activate();
+            return SystemIcons.Application;
         }
     }
 }

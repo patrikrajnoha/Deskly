@@ -11,19 +11,21 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class SplashActivity : AppCompatActivity() {
 
     private val prefsName = "deskly_prefs"
-    private val keyIp = "server_ip"
-    private val keyPort = "server_port"
-
-    // ✅ safe deviceKey (používa MainActivity ako primárny kľúč na token)
-    private val keyDevice = "server_device_key"
-
-    // ✅ raw discovery id (fallback/migrácia tokenu)
-    private val keyDeviceRaw = "server_device_raw_id"
+    private val keyIp = DesklyPrefs.KEY_IP
+    private val keyPort = DesklyPrefs.KEY_PORT
+    private val keyDevice = DesklyPrefs.KEY_DEVICE
+    private val keyDeviceRaw = DesklyPrefs.KEY_DEVICE_RAW
+    private val keyDeviceName = DesklyPrefs.KEY_DEVICE_NAME
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
@@ -45,107 +47,69 @@ class SplashActivity : AppCompatActivity() {
         val txtScanStatus = findViewById<TextView>(R.id.txtScanStatus)
         val rvDevices = findViewById<RecyclerView>(R.id.rvDevices)
 
-        // ✅ Collapsible manual section (NEW)
         val layoutManualHeader = findViewById<LinearLayout>(R.id.layoutManualHeader)
         val layoutManualContent = findViewById<LinearLayout>(R.id.layoutManualContent)
         val txtManualArrow = findViewById<TextView>(R.id.txtManualArrow)
 
         val prefs = getSharedPreferences(prefsName, MODE_PRIVATE)
-
-        val savedIp = prefs.getString(keyIp, "192.168.1.11").orEmpty()
-        val savedPort = prefs.getString(keyPort, "5050").orEmpty()
-
-        edtIp.setText(savedIp)
-        edtPort.setText(savedPort)
-
-        // ✅ helper: existuje token pre deviceKey alebo fallback rawId?
-        fun hasTokenForDevice(deviceKey: String, rawId: String?): Boolean {
-            val t1 = prefs.getString("auth_token__${deviceKey}", null)
-            if (!t1.isNullOrBlank()) return true
-
-            // fallback: starší štýl tokenu pod rawId
-            val rid = rawId?.trim().orEmpty()
-            if (rid.isNotBlank()) {
-                val t2 = prefs.getString("auth_token__${rid}", null)
-                if (!t2.isNullOrBlank()) return true
-            }
-            return false
-        }
+        edtIp.setText(prefs.getString(keyIp, "192.168.1.11").orEmpty())
+        edtPort.setText(prefs.getString(keyPort, "5050").orEmpty())
 
         fun updateHint() {
-            val ip2 = prefs.getString(keyIp, "").orEmpty()
-            val port2 = prefs.getString(keyPort, "5050").orEmpty()
-
-            val dk = prefs.getString(keyDevice, null)
-                ?: "manual_${ip2}:${port2}"
-
-            val rawId = prefs.getString(keyDeviceRaw, null)
-
-            val hasToken = hasTokenForDevice(dk, rawId)
-
+            val hasToken = DesklyClient.state.authorized || DesklyPrefs.hasToken(this)
             txtHint.text = if (hasToken) {
-                "Token uložený • môžeš sa pripojiť jedným klikom"
+                "Connected before. Choose a PC."
             } else {
-                "Najprv spáruj cez PIN (v Main)"
+                "Pair Required. Choose a PC, then enter the PIN."
             }
         }
-        updateHint()
 
-        // ✅ Toggle manual section (NEW)
         fun setManualExpanded(expanded: Boolean) {
             layoutManualContent.visibility = if (expanded) View.VISIBLE else View.GONE
-            txtManualArrow.text = if (expanded) "⌃" else "⌄"
+            txtManualArrow.text = if (expanded) "^" else "v"
         }
 
-        // default: zatvorené (núdzová sekcia)
+        updateHint()
         setManualExpanded(false)
 
         layoutManualHeader.setOnClickListener {
-            val isOpen = layoutManualContent.visibility == View.VISIBLE
-            setManualExpanded(!isOpen)
+            setManualExpanded(layoutManualContent.visibility != View.VISIBLE)
         }
 
         val adapter = DeviceAdapter { d ->
             val ip = d.ip.trim()
             val port = d.port
 
-            // ✅ validácia aby to nikdy nespadlo
             if (ip.isBlank()) {
-                toast("Zariadenie nemá platnú IP.")
+                toast("Command Failed")
                 return@DeviceAdapter
             }
             if (port !in 1..65535) {
-                toast("Zariadenie má zlý port: $port")
+                toast("Invalid port")
                 return@DeviceAdapter
             }
             if (d.id.isBlank()) {
-                toast("Zariadenie nemá ID (discovery).")
+                toast("Command Failed")
                 return@DeviceAdapter
             }
 
-            // ✅ safe deviceKey (pre prefs/token)
             val deviceKey = makeSafeDeviceKey(d.id, ip, port)
-
-            // UI: vyplň edittexty
             edtIp.setText(ip)
             edtPort.setText(port.toString())
 
-            // ✅ persist: uložíme aj raw id, aby Main vedel migrovať token
             prefs.edit()
                 .putString(keyIp, ip)
                 .putString(keyPort, port.toString())
                 .putString(keyDevice, deviceKey)
                 .putString(keyDeviceRaw, d.id)
+                .putString(keyDeviceName, d.name)
                 .apply()
 
-            val hasToken = hasTokenForDevice(deviceKey, d.id)
-            if (!hasToken) {
-                toast("Token nie je uložený – v Main spáruj cez PIN.")
+            if (!(DesklyClient.state.authorized || DesklyPrefs.hasToken(this))) {
+                toast("Pair Required")
             }
 
-            // (voliteľné) manuál sekciu schovaj, keď vybral zariadenie
             setManualExpanded(false)
-
             startActivity(Intent(this, MainActivity::class.java))
             finish()
         }
@@ -154,18 +118,17 @@ class SplashActivity : AppCompatActivity() {
         rvDevices.adapter = adapter
 
         fun doScan() {
-            txtScanStatus.text = "Skenujem sieť…"
+            txtScanStatus.text = "Searching"
             btnScan.isEnabled = false
 
             scope.launch {
                 val list = withContext(Dispatchers.IO) { DeviceDiscovery.scan() }
-
                 adapter.submit(list)
 
                 txtScanStatus.text = if (list.isEmpty()) {
-                    "Nenašli sa žiadne zariadenia. Skontroluj, či server beží a UDP 5051 nie je blokované firewallom."
+                    "No PC Found. Check Deskly Host and Wi-Fi."
                 } else {
-                    "Nájdené zariadenia: ${list.size} • klikni na zariadenie pre pripojenie"
+                    "Found ${list.size}"
                 }
 
                 btnScan.isEnabled = true
@@ -181,29 +144,27 @@ class SplashActivity : AppCompatActivity() {
             val port = portStr.toIntOrNull()
 
             if (ip.isEmpty()) {
-                toast("Zadaj IP adresu.")
+                toast("IP required")
                 return@setOnClickListener
             }
-
             if (port == null || port !in 1..65535) {
-                toast("Port musí byť číslo 1–65535 (napr. 5050).")
+                toast("Invalid port")
                 return@setOnClickListener
             }
 
             val deviceKey = "manual_${ip}:${port}"
-
             prefs.edit()
                 .putString(keyIp, ip)
                 .putString(keyPort, port.toString())
                 .putString(keyDevice, deviceKey)
-                .remove(keyDeviceRaw) // manuál nemá discovery id
+                .putString(keyDeviceName, "Manual PC")
+                .remove(keyDeviceRaw)
                 .apply()
 
             startActivity(Intent(this, MainActivity::class.java))
             finish()
         }
 
-        // auto-scan pri otvorení
         doScan()
     }
 

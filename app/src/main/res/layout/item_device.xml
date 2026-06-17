@@ -2,25 +2,27 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="12dp"
+    android:layout_marginBottom="10dp"
     android:background="@drawable/bg_input"
-    android:layout_marginBottom="10dp">
+    android:orientation="vertical"
+    android:padding="14dp">
 
     <TextView
         android:id="@+id/txtName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="PC name"
-        android:textColor="#EAEAEA"
-        android:textStyle="bold"/>
+        android:textColor="@color/text_primary"
+        android:textSize="15sp"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/txtIpPort"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
         android:text="192.168.1.11:5050"
-        android:textColor="#9AA3B2"
-        android:layout_marginTop="4dp"/>
+        android:textColor="@color/text_muted"
+        android:textSize="13sp" />
 
 </LinearLayout>

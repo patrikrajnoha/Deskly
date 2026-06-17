@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/rootScroll"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
     android:background="@drawable/bg_screen"
-    android:padding="16dp">
+    android:fillViewport="true"
+    android:overScrollMode="never"
+    android:padding="14dp">
 
     <LinearLayout
         android:id="@+id/root"
@@ -13,347 +15,2330 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- TOP BAR -->
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingBottom="14dp">
-
-            <TextView
-                android:id="@+id/txtStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Disconnected"
-                android:textColor="@color/text_primary"
-                android:textStyle="bold"
-                android:textSize="22sp"
-                android:layout_alignParentStart="true"
-                android:layout_centerVertical="true" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingBottom="12dp">
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-                <!-- ⚙️ Settings (emoji button) -->
                 <TextView
-                    android:id="@+id/btnSettingsIcon"
-                    android:layout_width="46dp"
-                    android:layout_height="46dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Deskly"
+                    android:textColor="@color/text_primary"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/txtPcName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Saved PC"
+                    android:textColor="@color/text_muted"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/txtPcAddress"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="No address"
+                    android:textColor="@color/text_muted"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/txtStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_status_offline"
+                    android:text="Offline"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/btnSettingsIcon"
+                style="@style/DesklyIconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="Settings"
+                android:src="@drawable/ic_settings"
+                app:tint="@color/button_text" />
+
+            <Space
+                android:layout_width="10dp"
+                android:layout_height="1dp" />
+
+            <ImageButton
+                android:id="@+id/btnAboutIcon"
+                style="@style/DesklyIconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="About"
+                android:src="@drawable/ic_info"
+                app:tint="@color/button_text" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/modeTabs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/bg_tile"
+            android:orientation="horizontal"
+            android:padding="6dp">
+
+            <Button
+                android:id="@+id/btnModeMouse"
+                style="@style/DesklyPillButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_btn_primary"
+                android:text="Mouse"
+                android:textAllCaps="false"
+                android:textSize="12sp" />
+
+            <Space android:layout_width="6dp" android:layout_height="1dp" />
+
+            <Button
+                android:id="@+id/btnModeKeys"
+                style="@style/DesklyPillButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_btn"
+                android:text="Keys"
+                android:textAllCaps="false"
+                android:textSize="12sp" />
+
+            <Space android:layout_width="6dp" android:layout_height="1dp" />
+
+            <Button
+                android:id="@+id/btnModeApps"
+                style="@style/DesklyPillButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_btn"
+                android:text="Apps"
+                android:textAllCaps="false"
+                android:textSize="12sp" />
+
+            <Space android:layout_width="6dp" android:layout_height="1dp" />
+
+            <Button
+                android:id="@+id/btnModeSlides"
+                style="@style/DesklyPillButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_btn"
+                android:text="Slides"
+                android:textAllCaps="false"
+                android:textSize="12sp" />
+
+            <Space android:layout_width="6dp" android:layout_height="1dp" />
+
+            <Button
+                android:id="@+id/btnModeSystem"
+                style="@style/DesklyPillButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_btn"
+                android:text="System"
+                android:textAllCaps="false"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/txtActionStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="18dp"
+            android:background="@drawable/bg_chip"
+            android:text="Ready"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/txtSectionTrackpad"
+            style="@style/DesklySectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="Mouse" />
+
+        <LinearLayout
+            android:id="@+id/cardMouse"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_tile"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/touchpadSurface"
+                android:layout_width="match_parent"
+                android:layout_height="280dp"
+                android:background="@drawable/bg_input"
+                android:contentDescription="Trackpad"
+                android:gravity="center"
+                android:text=""
+                android:textColor="@color/text_muted"
+                android:textSize="15sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnMouseLeft"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
                     android:background="@drawable/bg_btn"
-                    android:gravity="center"
-                    android:text="⚙️"
-                    android:textSize="18sp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:contentDescription="Settings" />
+                    android:text="Left"
+                    android:textAllCaps="false" />
+
+                <Space
+                    android:layout_width="10dp"
+                    android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnMouseRight"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Right"
+                    android:textAllCaps="false" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnMouseDouble"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Double"
+                    android:textAllCaps="false" />
+
+                <Space
+                    android:layout_width="10dp"
+                    android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnMouseDrag"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Drag"
+                    android:textAllCaps="false" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    style="@style/DesklyFieldLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Speed" />
+
+                <SeekBar
+                    android:id="@+id/seekMouseSensitivity"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:max="200"
+                    android:min="25"
+                    android:progress="100"
+                    android:progressBackgroundTint="@color/card_stroke"
+                    android:progressTint="@color/accent"
+                    android:thumbTint="@color/accent" />
+
+                <TextView
+                    android:id="@+id/txtMouseSensitivity"
+                    android:layout_width="72dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:text="1.0x"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    style="@style/DesklyFieldLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Scroll" />
+
+                <SeekBar
+                    android:id="@+id/seekTouchpadScrollSensitivity"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:max="200"
+                    android:min="25"
+                    android:progress="100"
+                    android:progressBackgroundTint="@color/card_stroke"
+                    android:progressTint="@color/accent"
+                    android:thumbTint="@color/accent" />
+
+                <TextView
+                    android:id="@+id/txtTouchpadScrollSensitivity"
+                    android:layout_width="72dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:text="Normal"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <Switch
+                    android:id="@+id/switchTouchpadNaturalScroll"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:checked="true"
+                    android:text="Natural"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp" />
+
+                <Switch
+                    android:id="@+id/switchTouchpadFeedback"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:checked="true"
+                    android:text="Feedback"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp" />
+
+                <Button
+                    android:id="@+id/btnTouchpadHelp"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="88dp"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_btn"
+                    android:text="Help"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <Switch
+                    android:id="@+id/switchMouseAcceleration"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:checked="true"
+                    android:text="Accel"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp" />
+
+                <Switch
+                    android:id="@+id/switchMouseLeftHanded"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:text="Lefty"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <Space
+            android:id="@+id/spacerAfterTrackpad"
+            android:layout_width="1dp"
+            android:layout_height="18dp" />
+
+        <TextView
+            android:id="@+id/txtSectionApps"
+            style="@style/DesklySectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="Apps" />
+
+        <LinearLayout
+            android:id="@+id/cardApps"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_tile"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnAppBrowser"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn_primary"
+                    android:text="+"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnAppFiles"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="+"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnAppNotes"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="+"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnAppSet1"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="34dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Edit"
+                    android:textAllCaps="false"
+                    android:textSize="11sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnAppSet2"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="34dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Edit"
+                    android:textAllCaps="false"
+                    android:textSize="11sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnAppSet3"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="34dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Edit"
+                    android:textAllCaps="false"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnAppCalc"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="+"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnAppTasks"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="+"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnAppSet4"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="34dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Edit"
+                    android:textAllCaps="false"
+                    android:textSize="11sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnAppSet5"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="34dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Edit"
+                    android:textAllCaps="false"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnAppWindows"
+                style="@style/DesklyPillButton"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_btn"
+                android:text="Windows"
+                android:textAllCaps="false"
+                android:textSize="13sp" />
+
+            <TextView
+                style="@style/DesklySectionTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="10dp"
+                android:text="Web" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnWeb1"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn_primary"
+                    android:text="+"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnWeb2"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="+"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnWeb3"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="+"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnWebSet1"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="34dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Edit"
+                    android:textAllCaps="false"
+                    android:textSize="11sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnWebSet2"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="34dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Edit"
+                    android:textAllCaps="false"
+                    android:textSize="11sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnWebSet3"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="34dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Edit"
+                    android:textAllCaps="false"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnWeb4"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="+"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnWeb5"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="+"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnWebSet4"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="34dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Edit"
+                    android:textAllCaps="false"
+                    android:textSize="11sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnWebSet5"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="34dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Edit"
+                    android:textAllCaps="false"
+                    android:textSize="11sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <Space
+            android:id="@+id/spacerAfterApps"
+            android:layout_width="1dp"
+            android:layout_height="18dp" />
+
+        <TextView
+            android:id="@+id/txtSectionSlides"
+            style="@style/DesklySectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="Slides" />
+
+        <LinearLayout
+            android:id="@+id/cardSlides"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_tile"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <Button
+                android:id="@+id/btnSlidesStart"
+                style="@style/DesklyPillButton"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:background="@drawable/bg_btn_primary"
+                android:text="Start"
+                android:textAllCaps="false"
+                android:textSize="14sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <Button
+                android:id="@+id/btnSlidesPrevious"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Back"
+                    android:textAllCaps="false"
+                    android:textSize="14sp" />
 
                 <Space android:layout_width="10dp" android:layout_height="1dp" />
 
-                <!-- ℹ️ About (emoji button) -->
-                <TextView
-                    android:id="@+id/btnAboutIcon"
-                    android:layout_width="46dp"
-                    android:layout_height="46dp"
+                <Button
+                    android:id="@+id/btnSlidesNext"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn_primary"
+                    android:text="Next"
+                    android:textAllCaps="false"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnSlidesBlack"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
                     android:background="@drawable/bg_btn"
-                    android:gravity="center"
-                    android:text="ℹ️"
-                    android:textSize="18sp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:contentDescription="About" />
+                    android:text="Black"
+                    android:textAllCaps="false"
+                    android:textSize="13sp" />
+
+                <Space android:layout_width="10dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnSlidesExit"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Exit"
+                    android:textAllCaps="false"
+                    android:textSize="13sp" />
             </LinearLayout>
-        </RelativeLayout>
-
-        <!-- SLIDERS BLOCK -->
-        <!-- Row 1: Primary slider + Night (moon) -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Primary"
-                    android:textColor="@color/text_muted"
-                    android:textSize="12sp"
-                    android:paddingBottom="4dp" />
-
-                <SeekBar
-                    android:id="@+id/seekPrimary"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:max="100"
-                    android:progress="50"
-                    android:thumbTint="@color/text_muted"
-                    android:progressTint="@color/text_muted"
-                    android:progressBackgroundTint="@color/card_stroke" />
-            </LinearLayout>
-
-            <Space android:layout_width="12dp" android:layout_height="1dp" />
-
-            <!-- 🌙 Night (emoji button) -->
-            <TextView
-                android:id="@+id/btnNight"
-                android:layout_width="54dp"
-                android:layout_height="54dp"
-                android:background="@drawable/bg_btn"
-                android:gravity="center"
-                android:text="🌙"
-                android:textSize="18sp"
-                android:clickable="true"
-                android:focusable="true"
-                android:contentDescription="Night mode" />
         </LinearLayout>
 
-        <Space android:layout_width="1dp" android:layout_height="12dp" />
+        <Space
+            android:id="@+id/spacerAfterSlides"
+            android:layout_width="1dp"
+            android:layout_height="18dp" />
 
-        <!-- Row 2: Internal brightness + Quiet (fan/energy) -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Brightness (internal)"
-                    android:textColor="@color/text_muted"
-                    android:textSize="12sp"
-                    android:paddingBottom="4dp" />
-
-                <SeekBar
-                    android:id="@+id/seekInternalBrightness"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:max="100"
-                    android:progress="50"
-                    android:thumbTint="@color/text_muted"
-                    android:progressTint="@color/text_muted"
-                    android:progressBackgroundTint="@color/card_stroke" />
-            </LinearLayout>
-
-            <Space android:layout_width="12dp" android:layout_height="1dp" />
-
-            <!-- 🌀 Quiet / Fan (emoji button) -->
-            <TextView
-                android:id="@+id/btnQuiet"
-                android:layout_width="54dp"
-                android:layout_height="54dp"
-                android:background="@drawable/bg_btn"
-                android:gravity="center"
-                android:text="🌀"
-                android:textSize="18sp"
-                android:clickable="true"
-                android:focusable="true"
-                android:contentDescription="Quiet mode" />
-        </LinearLayout>
-
-        <Space android:layout_width="1dp" android:layout_height="12dp" />
-
-        <!-- Row 3: Volume + Mute -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Volume"
-                    android:textColor="@color/text_muted"
-                    android:textSize="12sp"
-                    android:paddingBottom="4dp" />
-
-                <SeekBar
-                    android:id="@+id/seekVolume"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:max="100"
-                    android:progress="50"
-                    android:thumbTint="@color/text_muted"
-                    android:progressTint="@color/text_muted"
-                    android:progressBackgroundTint="@color/card_stroke" />
-            </LinearLayout>
-
-            <Space android:layout_width="12dp" android:layout_height="1dp" />
-
-            <!-- 🔇 Mute (emoji button) -->
-            <TextView
-                android:id="@+id/btnMute"
-                android:layout_width="54dp"
-                android:layout_height="54dp"
-                android:background="@drawable/bg_btn"
-                android:gravity="center"
-                android:text="🔊"
-                android:textSize="18sp"
-                android:clickable="true"
-                android:focusable="true"
-                android:contentDescription="Mute toggle" />
-        </LinearLayout>
-
-        <Space android:layout_width="1dp" android:layout_height="22dp" />
-
-        <!-- TIMER STATUS -->
-        <!-- (tap on this line will switch SLEEP/SHUTDOWN in MainActivity) -->
         <TextView
-            android:id="@+id/txtTimerStatus"
+            android:id="@+id/txtSectionMedia"
+            style="@style/DesklySectionTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="TIMER • 30 min • SLEEP"
-            android:textColor="@color/text_muted"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:paddingBottom="12dp"
-            android:clickable="true"
-            android:focusable="true" />
-
-        <!-- TIMER: - / + -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btnTimerMinus"
-                style="@style/DesklyPillButton"
-                android:layout_width="0dp"
-                android:layout_height="58dp"
-                android:layout_weight="1"
-                android:text="-"
-                android:textSize="22sp"
-                android:background="@drawable/bg_btn" />
-
-            <Space android:layout_width="12dp" android:layout_height="1dp" />
-
-            <Button
-                android:id="@+id/btnTimerPlus"
-                style="@style/DesklyPillButton"
-                android:layout_width="0dp"
-                android:layout_height="58dp"
-                android:layout_weight="1"
-                android:text="+"
-                android:textSize="22sp"
-                android:background="@drawable/bg_btn" />
-        </LinearLayout>
-
-        <Space android:layout_width="1dp" android:layout_height="12dp" />
-
-        <!-- TIMER: Start / Cancel -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btnTimerStart"
-                style="@style/DesklyPillButton"
-                android:layout_width="0dp"
-                android:layout_height="58dp"
-                android:layout_weight="1"
-                android:text="START"
-                android:textSize="18sp"
-                android:background="@drawable/bg_btn" />
-
-            <Space android:layout_width="12dp" android:layout_height="1dp" />
-
-            <Button
-                android:id="@+id/btnTimerCancel"
-                style="@style/DesklyPillButton"
-                android:layout_width="0dp"
-                android:layout_height="58dp"
-                android:layout_weight="1"
-                android:text="CANCEL"
-                android:textSize="18sp"
-                android:background="@drawable/bg_btn" />
-        </LinearLayout>
-
-        <Space android:layout_width="1dp" android:layout_height="20dp" />
-
-        <!-- POWER -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btnLock"
-                style="@style/DesklyPillButton"
-                android:layout_width="0dp"
-                android:layout_height="66dp"
-                android:layout_weight="1"
-                android:text="LOCK"
-                android:textSize="18sp"
-                android:background="@drawable/bg_btn" />
-
-            <Space android:layout_width="12dp" android:layout_height="1dp" />
-
-            <Button
-                android:id="@+id/btnSleep"
-                style="@style/DesklyPillButton"
-                android:layout_width="0dp"
-                android:layout_height="66dp"
-                android:layout_weight="1"
-                android:text="SLEEP"
-                android:textSize="18sp"
-                android:background="@drawable/bg_btn" />
-        </LinearLayout>
-
-        <Space android:layout_width="1dp" android:layout_height="12dp" />
+            android:layout_marginBottom="10dp"
+            android:text="Media" />
 
         <LinearLayout
+            android:id="@+id/cardMedia"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:background="@drawable/bg_tile"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnMediaPrevious"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="52dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Prev"
+                    android:textAllCaps="false"
+                    android:textSize="13sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnMediaPlayPause"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="52dp"
+                    android:layout_weight="1.35"
+                    android:background="@drawable/bg_btn_primary"
+                    android:text="Play"
+                    android:textAllCaps="false"
+                    android:textSize="13sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnMediaNext"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="52dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Next"
+                    android:textAllCaps="false"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnMediaVolumeDown"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Vol -"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnMediaMute"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Mute"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnMediaVolumeUp"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Vol +"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnMediaSeekBackward"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="-10s"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnMediaFullscreen"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Full"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnMediaSeekForward"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="+10s"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+            </LinearLayout>
 
             <Button
-                android:id="@+id/btnRestart"
+                android:id="@+id/btnVideoList"
                 style="@style/DesklyPillButton"
-                android:layout_width="0dp"
-                android:layout_height="66dp"
-                android:layout_weight="1"
-                android:text="RESTART"
-                android:textSize="18sp"
-                android:background="@drawable/bg_btn" />
-
-            <Space android:layout_width="12dp" android:layout_height="1dp" />
-
-            <Button
-                android:id="@+id/btnShutdown"
-                style="@style/DesklyPillButton"
-                android:layout_width="0dp"
-                android:layout_height="66dp"
-                android:layout_weight="1"
-                android:text="SHUTDOWN"
-                android:textSize="18sp"
-                android:background="@drawable/bg_btn" />
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_btn"
+                android:text="Videos"
+                android:textAllCaps="false"
+                android:textSize="13sp" />
         </LinearLayout>
 
-        <Space android:layout_width="1dp" android:layout_height="24dp" />
+        <Space
+            android:id="@+id/spacerAfterMedia"
+            android:layout_width="1dp"
+            android:layout_height="18dp" />
 
+        <TextView
+            android:id="@+id/txtSectionKeyboard"
+            style="@style/DesklySectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="Keyboard" />
+
+        <LinearLayout
+            android:id="@+id/cardKeyboard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_tile"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/edtKeyboardText"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_input"
+                    android:hint="Text"
+                    android:inputType="textMultiLine|textCapSentences"
+                    android:maxLines="3"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_muted"
+                    android:textSize="14sp" />
+
+                <Space
+                    android:layout_width="10dp"
+                    android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnKeyboardSend"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="74dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_btn_primary"
+                    android:text="Send"
+                    android:textAllCaps="false"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnKeyboardSendChars"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Chars"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnKeyboardVoice"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Voice"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnKeyEnter"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Enter"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                android:id="@+id/btnKeyBackspace"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Back"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnKeyEsc"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Esc"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnKeyTab"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Tab"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnKeyLeft"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:contentDescription="Left arrow"
+                    android:text="←"
+                    android:textAllCaps="false"
+                    android:textSize="18sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnKeyUp"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:contentDescription="Up arrow"
+                    android:text="↑"
+                    android:textAllCaps="false"
+                    android:textSize="18sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnKeyDown"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:contentDescription="Down arrow"
+                    android:text="↓"
+                    android:textAllCaps="false"
+                    android:textSize="18sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnKeyRight"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:contentDescription="Right arrow"
+                    android:text="→"
+                    android:textAllCaps="false"
+                    android:textSize="18sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnShortcutCopy"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Copy"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnShortcutPaste"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Paste"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                android:id="@+id/btnShortcutSelectAll"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Select"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnShortcutAltTab"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Switch"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <Space
+            android:id="@+id/spacerAfterKeyboard"
+            android:layout_width="1dp"
+            android:layout_height="18dp" />
+
+        <TextView
+            android:id="@+id/txtSectionWebRemote"
+            style="@style/DesklySectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="Web Remote" />
+
+        <LinearLayout
+            android:id="@+id/cardWebRemote"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_tile"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnWebBack"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Back"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnWebForward"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Forward"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnWebRefresh"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Refresh"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnWebNewTab"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="New"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnWebCloseTab"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Close"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnWebFullscreen"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Full"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnWebPrevTab"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Prev Tab"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnWebNextTab"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Next Tab"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnWebPageUp"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Page Up"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnWebPageDown"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Page Down"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <Space
+            android:id="@+id/spacerAfterWebRemote"
+            android:layout_width="1dp"
+            android:layout_height="18dp" />
+
+        <TextView
+            android:id="@+id/txtSectionShortcuts"
+            style="@style/DesklySectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="Shortcuts" />
+
+        <LinearLayout
+            android:id="@+id/cardShortcuts"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_tile"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnQuickShortcut1"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn_primary"
+                    android:text="+"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnQuickShortcut2"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="+"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnQuickShortcut3"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="+"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnQuickShortcutSet1"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="34dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Edit"
+                    android:textAllCaps="false"
+                    android:textSize="11sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnQuickShortcutSet2"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="34dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Edit"
+                    android:textAllCaps="false"
+                    android:textSize="11sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnQuickShortcutSet3"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="34dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Edit"
+                    android:textAllCaps="false"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnQuickShortcut4"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="+"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnQuickShortcut5"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="60dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="+"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnQuickShortcutSet4"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="34dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Edit"
+                    android:textAllCaps="false"
+                    android:textSize="11sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnQuickShortcutSet5"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="34dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Edit"
+                    android:textAllCaps="false"
+                    android:textSize="11sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <Space
+            android:id="@+id/spacerAfterShortcuts"
+            android:layout_width="1dp"
+            android:layout_height="18dp" />
+
+        <TextView
+            android:id="@+id/txtSectionClipboard"
+            style="@style/DesklySectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="Clipboard" />
+
+        <LinearLayout
+            android:id="@+id/cardClipboard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_tile"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <EditText
+                android:id="@+id/edtClipboardText"
+                android:layout_width="match_parent"
+                android:layout_height="92dp"
+                android:background="@drawable/bg_input"
+                android:gravity="top|start"
+                android:hint="Text"
+                android:inputType="textMultiLine|textCapSentences"
+                android:maxLines="5"
+                android:paddingStart="14dp"
+                android:paddingTop="12dp"
+                android:paddingEnd="14dp"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_muted"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/btnClipboardCopy"
+                style="@style/DesklyPillButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_btn_primary"
+                android:text="Copy to PC"
+                android:textAllCaps="false"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <Space
+            android:id="@+id/spacerAfterClipboard"
+            android:layout_width="1dp"
+            android:layout_height="18dp" />
+
+        <TextView
+            android:id="@+id/txtSectionControls"
+            style="@style/DesklySectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="Controls" />
+
+        <LinearLayout
+            android:id="@+id/sectionControlsContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_tile"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:contentDescription="Volume"
+                        android:src="@drawable/ic_volume_up"
+                        app:tint="@color/colorPrimary" />
+
+                    <TextView
+                        style="@style/DesklySectionTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_weight="1"
+                        android:text="Volume" />
+
+                    <TextView
+                        android:id="@+id/txtVolumeValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="50%"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <SeekBar
+                        android:id="@+id/seekVolume"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:max="100"
+                        android:progress="50"
+                        android:progressBackgroundTint="@color/card_stroke"
+                        android:progressTint="@color/accent"
+                        android:thumbTint="@color/accent" />
+
+                    <Space
+                        android:layout_width="12dp"
+                        android:layout_height="1dp" />
+
+                    <ImageButton
+                        android:id="@+id/btnMute"
+                        style="@style/DesklyIconButton"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:contentDescription="Mute"
+                        android:src="@drawable/ic_volume_up"
+                        app:tint="@color/button_text" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <Space android:layout_width="1dp" android:layout_height="12dp" />
+
+            <LinearLayout
+                android:id="@+id/cardEyeProtector"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_tile"
+                android:clickable="true"
+                android:contentDescription="Night Mode"
+                android:focusable="true"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:contentDescription="Brightness"
+                        android:src="@drawable/ic_brightness"
+                        app:tint="@color/colorPrimary" />
+
+                    <TextView
+                        style="@style/DesklySectionTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_weight="1"
+                        android:text="Brightness" />
+
+                    <TextView
+                        android:id="@+id/txtBrightnessValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="50%"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/txtBrightnessSupport"
+                    style="@style/DesklyFieldLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="34dp"
+                    android:layout_marginTop="4dp"
+                    android:text="External" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <SeekBar
+                        android:id="@+id/seekPrimary"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:max="100"
+                        android:progress="50"
+                        android:progressBackgroundTint="@color/card_stroke"
+                        android:progressTint="@color/accent"
+                        android:thumbTint="@color/accent" />
+
+                    <Space
+                        android:layout_width="12dp"
+                        android:layout_height="1dp" />
+
+                    <ImageButton
+                        android:id="@+id/btnNight"
+                        style="@style/DesklyIconButton"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:contentDescription="Night Mode"
+                        android:src="@drawable/ic_nightlight"
+                        app:tint="@color/button_text" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <Space android:layout_width="1dp" android:layout_height="12dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_tile"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:contentDescription="Night Mode"
+                        android:src="@drawable/ic_nightlight"
+                        app:tint="@color/colorPrimary" />
+
+                    <TextView
+                        style="@style/DesklySectionTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_weight="1"
+                        android:text="Night Mode" />
+
+                    <TextView
+                        android:id="@+id/txtEyeIntensityValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="60%"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/txtEyeModeValue"
+                    style="@style/DesklyFieldLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="34dp"
+                    android:layout_marginTop="4dp"
+                    android:text="Night Shift" />
+            </LinearLayout>
+
+            <Space android:layout_width="1dp" android:layout_height="12dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_tile"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:contentDescription="Sleep Timer"
+                        android:src="@drawable/ic_timer"
+                        app:tint="@color/colorPrimary" />
+
+                    <TextView
+                        android:id="@+id/txtTimerStatus"
+                        style="@style/DesklySectionTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_weight="1"
+                        android:text="Timer - 30 min" />
+
+                    <TextView
+                        android:id="@+id/txtTimerActionChip"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_chip"
+                        android:text="Sleep"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btnTimerMinus"
+                        style="@style/DesklyPillButton"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_btn"
+                        android:text="-"
+                        android:textSize="20sp" />
+
+                    <Space android:layout_width="10dp" android:layout_height="1dp" />
+
+                    <Button
+                        android:id="@+id/btnTimerPlus"
+                        style="@style/DesklyPillButton"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_btn"
+                        android:text="+"
+                        android:textSize="20sp" />
+
+                    <Space android:layout_width="10dp" android:layout_height="1dp" />
+
+                    <Button
+                        android:id="@+id/btnTimerStart"
+                        style="@style/DesklyPillButton"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1.4"
+                        android:background="@drawable/bg_btn_primary"
+                        android:text="Start"
+                        android:textAllCaps="false" />
+
+                    <Space android:layout_width="10dp" android:layout_height="1dp" />
+
+                    <Button
+                        android:id="@+id/btnTimerCancel"
+                        style="@style/DesklyPillButton"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1.4"
+                        android:background="@drawable/bg_btn"
+                        android:text="Cancel"
+                        android:textAllCaps="false" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/txtSectionPower"
+            style="@style/DesklySectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:layout_marginBottom="10dp"
+            android:text="Power" />
+
+        <LinearLayout
+            android:id="@+id/cardPower"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_tile"
+            android:orientation="vertical"
+            android:padding="14dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnLock"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="68dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:drawableTop="@drawable/ic_lock"
+                    android:text="Lock"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnSleep"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="68dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:drawableTop="@drawable/ic_sleep"
+                    android:text="Sleep"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnDisplayOff"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="68dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:drawableTop="@drawable/ic_screen_off"
+                    android:text="Off"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnDisplayOn"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="68dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:drawableTop="@drawable/ic_brightness"
+                    android:text="On"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnRestart"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="68dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn_danger"
+                    android:drawableTop="@drawable/ic_restart"
+                    android:text="Restart"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnShutdown"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="68dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn_danger"
+                    android:drawableTop="@drawable/ic_power"
+                    android:text="Shutdown"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/txtSectionSystem"
+            style="@style/DesklySectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:layout_marginBottom="10dp"
+            android:text="System" />
+
+        <LinearLayout
+            android:id="@+id/cardSystem"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_tile"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="Power Plan"
+                    android:src="@drawable/ic_speed"
+                    app:tint="@color/colorPrimary" />
+
+                <TextView
+                    android:id="@+id/txtPowerPlan"
+                    style="@style/DesklySectionTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:text="Mode: --" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnPowerSaver"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Low"
+                    android:textAllCaps="false"
+                    android:textSize="13sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnPowerBalanced"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Balanced"
+                    android:textAllCaps="false"
+                    android:textSize="13sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnPowerHigh"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Max"
+                    android:textAllCaps="false"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="14dp"
+                android:background="@color/card_stroke" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="Quiet Mode"
+                    android:src="@drawable/ic_quiet"
+                    app:tint="@color/colorPrimary" />
+
+                <TextView
+                    style="@style/DesklySectionTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:text="Quiet" />
+
+                <TextView
+                    android:id="@+id/txtQuietValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Off"
+                    android:textColor="@color/text_muted"
+                    android:textSize="13sp" />
+
+                <Space android:layout_width="12dp" android:layout_height="1dp" />
+
+                <ImageButton
+                    android:id="@+id/btnQuiet"
+                    style="@style/DesklyIconButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:contentDescription="Quiet Mode"
+                    android:src="@drawable/ic_quiet"
+                    app:tint="@color/button_text" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="14dp"
+                android:background="@color/card_stroke" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="Built-in Brightness"
+                    android:src="@drawable/ic_brightness"
+                    app:tint="@color/colorPrimary" />
+
+                <TextView
+                    style="@style/DesklySectionTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:text="Built-in" />
+
+                <TextView
+                    android:id="@+id/txtBuiltInBrightnessValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="50%"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <SeekBar
+                android:id="@+id/seekInternalBrightness"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:max="100"
+                android:progress="50"
+                android:progressBackgroundTint="@color/card_stroke"
+                android:progressTint="@color/accent"
+                android:thumbTint="@color/accent" />
+
+            <TextView
+                style="@style/DesklyFieldLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="Display Mode" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnDisplayInternal"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="PC"
+                    android:textSize="13sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnDisplayDuplicate"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Mirror"
+                    android:textAllCaps="false"
+                    android:textSize="13sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnDisplayExtend"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Extend"
+                    android:textAllCaps="false"
+                    android:textSize="13sp" />
+
+                <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/btnDisplayExternal"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="2nd"
+                    android:textAllCaps="false"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <Space
+            android:layout_width="1dp"
+            android:layout_height="24dp" />
     </LinearLayout>
 </ScrollView>

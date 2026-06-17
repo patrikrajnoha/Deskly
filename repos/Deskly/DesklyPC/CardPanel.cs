@@ -8,7 +8,7 @@ namespace DesklyPC
 {
     public class CardPanel : Panel
     {
-        private int _cornerRadius = 18;
+        private int _cornerRadius = 12;
         private bool _showBorder = true;
         private Color _borderColor = Color.FromArgb(32, 255, 255, 255);
         private Color _cardColor = Color.FromArgb(18, 20, 28); // #12141C
@@ -31,7 +31,7 @@ namespace DesklyPC
         }
 
         [Category("Appearance")]
-        [DefaultValue(16)]
+        [DefaultValue(12)]
         public int CornerRadius
         {
             get => _cornerRadius;

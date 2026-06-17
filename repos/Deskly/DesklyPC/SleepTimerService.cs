@@ -9,6 +9,7 @@ public sealed class SleepTimerService
 
     private DateTime? _endUtc;
     private string? _action; // "sleep" | "shutdown"
+    private bool _fadeOutVolume;
 
     public (bool running, int remainingSeconds, string? action) GetStatus()
     {
@@ -30,10 +31,13 @@ public sealed class SleepTimerService
             _timer = null;
             _endUtc = null;
             _action = null;
+            _fadeOutVolume = false;
         }
     }
 
-    public void Set(int seconds, string action)
+    public void Set(int seconds, string action) => Set(seconds, action, fadeOutVolume: false);
+
+    public void Set(int seconds, string action, bool fadeOutVolume)
     {
         seconds = Math.Clamp(seconds, 1, 24 * 60 * 60);
         action = action == "shutdown" ? "shutdown" : "sleep";
@@ -43,6 +47,7 @@ public sealed class SleepTimerService
             Cancel();
 
             _action = action;
+            _fadeOutVolume = fadeOutVolume && action == "shutdown";
             _endUtc = DateTime.UtcNow.AddSeconds(seconds);
 
             _timer = new System.Threading.Timer(_ =>
@@ -50,9 +55,10 @@ public sealed class SleepTimerService
                 try
                 {
                     var act = _action;
+                    var fade = _fadeOutVolume;
                     Cancel(); // one-shot
 
-                    if (act == "shutdown") SystemActions.ShutdownPc();
+                    if (act == "shutdown") SystemActions.ShutdownPc(fade);
                     else SystemActions.SleepPc();
                 }
                 catch { /* ignore */ }

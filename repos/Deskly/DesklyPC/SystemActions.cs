@@ -62,6 +62,44 @@ public static class SystemActions
         catch { return false; }
     }
 
+    public static bool ShutdownPc(bool fadeOutVolume)
+    {
+        if (fadeOutVolume)
+            FadeOutVolume(TimeSpan.FromSeconds(12), out _);
+
+        return ShutdownPc();
+    }
+
+    public static bool ShutdownPcAfterOptionalFadeAsync(bool fadeOutVolume, out string message)
+    {
+        if (!fadeOutVolume)
+        {
+            var ok = ShutdownPc();
+            message = ok ? "Shutting down" : "Shutdown failed";
+            return ok;
+        }
+
+        try
+        {
+            Task.Run(() =>
+            {
+                try { FadeOutVolume(TimeSpan.FromSeconds(12), out _); }
+                catch { /* continue to shutdown */ }
+
+                try { ShutdownPc(); }
+                catch { /* shutdown failure is best-effort after response */ }
+            });
+
+            message = "Shutdown scheduled";
+            return true;
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+            return false;
+        }
+    }
+
     public static bool RestartPc()
     {
         try
@@ -115,5 +153,45 @@ public static class SystemActions
         using var device = GetDefaultOutputDevice();
         device.AudioEndpointVolume.Mute = !device.AudioEndpointVolume.Mute;
         return device.AudioEndpointVolume.Mute;
+    }
+
+    public static bool FadeOutVolume(TimeSpan duration, out string message)
+    {
+        try
+        {
+            duration = duration.TotalMilliseconds < 1000
+                ? TimeSpan.FromSeconds(1)
+                : duration;
+
+            var start = GetVolume();
+            if (start <= 0)
+            {
+                message = "Already silent";
+                return true;
+            }
+
+            using var device = GetDefaultOutputDevice();
+            if (device.AudioEndpointVolume.Mute)
+                device.AudioEndpointVolume.Mute = false;
+
+            const int steps = 24;
+            var delayMs = Math.Max(40, (int)(duration.TotalMilliseconds / steps));
+
+            for (var i = 1; i <= steps; i++)
+            {
+                var next = (int)Math.Round(start * (1.0 - (double)i / steps));
+                device.AudioEndpointVolume.MasterVolumeLevelScalar = Math.Clamp(next, 0, 100) / 100f;
+                Thread.Sleep(delayMs);
+            }
+
+            device.AudioEndpointVolume.MasterVolumeLevelScalar = 0f;
+            message = "OK";
+            return true;
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+            return false;
+        }
     }
 }

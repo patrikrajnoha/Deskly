@@ -41,6 +41,8 @@ object DeviceDiscovery {
                     val json = JSONObject(text)
 
                     if (json.optString("type") != "discover_response") continue
+                    val protocolVersion = if (json.has("protocolVersion")) json.optInt("protocolVersion", -1) else null
+                    if (!DesklyProtocol.isSupportedVersion(protocolVersion)) continue
 
                     val id = json.optString("id").trim()
                     val name = json.optString("name").trim().ifEmpty { "Deskly PC" }

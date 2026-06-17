@@ -14,16 +14,55 @@
 
         <!-- text a zarovnanie -->
         <item name="android:gravity">center</item>
-        <item name="android:textAllCaps">true</item>
+        <item name="android:textAllCaps">false</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColor">@color/button_text</item>
 
         <!-- rozumné rozmery -->
-        <item name="android:minHeight">58dp</item>
+        <item name="android:minHeight">48dp</item>
         <item name="android:paddingLeft">0dp</item>
         <item name="android:paddingRight">0dp</item>
         <item name="android:paddingTop">0dp</item>
         <item name="android:paddingBottom">0dp</item>
+    </style>
+
+    <style name="DesklySectionTitle">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="DesklySectionSubtitle">
+        <item name="android:textColor">@color/text_muted</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="DesklyFieldLabel">
+        <item name="android:textColor">@color/text_muted</item>
+        <item name="android:textSize">11sp</item>
+    </style>
+
+    <style name="DesklyIconButton">
+        <item name="android:background">@drawable/bg_btn</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:scaleType">center</item>
+    </style>
+
+    <style name="DesklySettingTitle">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="DesklySettingValue">
+        <item name="android:textColor">@color/text_muted</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+
+    <style name="DesklySettingSubtitle">
+        <item name="android:textColor">@color/text_muted</item>
+        <item name="android:textSize">13sp</item>
     </style>
 
 </resources>
