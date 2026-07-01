@@ -22,4 +22,12 @@ class MediaProtocolTest {
         assertTrue(MediaProtocol.isSupported("fullscreen"))
         assertFalse(MediaProtocol.isSupported("launch_random_app"))
     }
+
+    @Test
+    fun mediaPayloadCanCarrySelectedVideoTarget() {
+        val payload = MediaProtocol.payload("play_pause", targetId = "ABC")
+
+        assertEquals("play_pause", payload.getString("action"))
+        assertEquals("ABC", payload.getString("targetId"))
+    }
 }

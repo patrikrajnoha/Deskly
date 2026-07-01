@@ -19,6 +19,7 @@ The PC build requires the .NET 10 SDK because `DesklyPC.csproj` targets `net10.0
 ## Android Manual QA
 
 - Fresh install: launch, discover PC over LAN, select device, pair by PIN.
+- Bluetooth: pair phone and PC in OS Bluetooth settings, start Deskly Host, open Android Settings > Bluetooth, select the paired PC, then pair/auth with the same PIN/token flow.
 - Reconnect: close and reopen Android app, verify saved PC name/address and automatic auth.
 - Connection status: verify connected, disconnected, lost connection, and failed auth states are visible.
 - Notifications: on Android 13+, deny and allow `POST_NOTIFICATIONS`; verify the app handles both safely.
@@ -27,6 +28,7 @@ The PC build requires the .NET 10 SDK because `DesklyPC.csproj` targets `net10.0
 - Power actions: verify disabled setting blocks buttons; sleep, restart, and shutdown show confirmation; repeated taps are rejected or ignored safely.
 - App switcher: open several desktop windows, tap Apps > Windows, choose a window, and verify the PC attempts to focus it. Close a listed window before selecting it to verify a graceful failure.
 - Media remote: test play/pause, previous, next, volume, mute, seek, and fullscreen against a browser/media app.
+- Video list: open YouTube/Netflix/VLC/Spotify or another supported media window, tap Media > Videos, verify title/source appears, select it, and test Play/Pause or Fullscreen. Close the window and verify graceful fallback.
 - Web remote: test browser actions on Chrome, Firefox, and Opera where installed.
 - Touchpad/mouse/keyboard: test click, drag, scroll, text entry, shortcuts, and reconnect after network loss.
 
@@ -36,11 +38,11 @@ The PC build requires the .NET 10 SDK because `DesklyPC.csproj` targets `net10.0
 - Token auth: verify unauthenticated clipboard, app, power, media, and video requests are rejected.
 - Logs: confirm raw JSON, tokens, PINs, and clipboard contents are not logged.
 - Power: verify stale timestamped commands and fast repeated dangerous commands are rejected.
-- Unsupported behavior: `video_list` should return `supported: false` and `fallback: "media_remote"`.
+- Video detection: with no media/browser windows open, `video_list` should return an empty list with `fallback: "media_remote"`; with a supported window open, it should return title/source metadata.
 
 ## Compatibility Notes
 
 - Windows is the only implemented PC host target.
-- LAN/TCP is the only implemented transport; Bluetooth is currently an unavailable/fallback state.
+- LAN/TCP remains the primary transport. Bluetooth Classic/RFCOMM is implemented as an optional transport and needs OS Bluetooth pairing/hardware support.
 - Android supports the declared min/target SDKs in `app/build.gradle.kts`; Android 13+ notification permission must be handled at runtime.
-- Automatic video detection is not implemented; use Media Remote controls as fallback.
+- Automatic video detection uses safe Windows window/process metadata. It does not inspect page contents or playback state, so `playbackState` may be `unknown`.

@@ -1,5 +1,8 @@
 package com.example.deskly
 
+import android.annotation.SuppressLint
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothSocket
 import android.os.Build
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -28,6 +31,10 @@ import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 
 object DesklyClient {
+    enum class ConnectionType {
+        LAN,
+        BLUETOOTH
+    }
 
     data class State(
         val connecting: Boolean = false,
@@ -36,6 +43,7 @@ object DesklyClient {
         val authorized: Boolean = false,
         val serverIp: String? = null,
         val serverPort: Int? = null,
+        val connectionType: ConnectionType = ConnectionType.LAN,
         val lastError: String? = null
     )
 
@@ -72,7 +80,9 @@ object DesklyClient {
     }
 
     private var socket: Socket? = null
+    private var bluetoothSocket: BluetoothSocket? = null
     @Volatile private var connectingSocket: Socket? = null
+    @Volatile private var connectingBluetoothSocket: BluetoothSocket? = null
     private var reader: BufferedReader? = null
     private var writer: BufferedWriter? = null
 
@@ -145,6 +155,7 @@ object DesklyClient {
                         authorized = false,
                         serverIp = ip,
                         serverPort = port,
+                        connectionType = ConnectionType.LAN,
                         lastError = null
                     )
                 }
@@ -215,6 +226,95 @@ object DesklyClient {
         }
     }
 
+    @SuppressLint("MissingPermission")
+    fun connectBluetooth(device: BluetoothDevice, onDone: (ok: Boolean, err: String?) -> Unit) {
+        ioScope.launch {
+            val generation = connectionGeneration.incrementAndGet()
+            val name = runCatching { device.name }.getOrNull()?.takeIf { it.isNotBlank() } ?: "Bluetooth PC"
+            val address = runCatching { device.address }.getOrNull().orEmpty()
+            try {
+                closeInternal("replace bluetooth connect", notify = false)
+                updateState {
+                    it.copy(
+                        connecting = true,
+                        connected = false,
+                        authenticating = false,
+                        authorized = false,
+                        serverIp = address,
+                        serverPort = null,
+                        connectionType = ConnectionType.BLUETOOTH,
+                        lastError = null
+                    )
+                }
+
+                log("Connecting to Bluetooth device: $name")
+
+                val s = device.createRfcommSocketToServiceRecord(BluetoothProtocol.SERVICE_UUID)
+                connectingBluetoothSocket = s
+                s.connect()
+                if (connectingBluetoothSocket === s) connectingBluetoothSocket = null
+
+                if (connectionGeneration.get() != generation) {
+                    try { s.close() } catch (_: Exception) {}
+                    withContext(Dispatchers.Main) { onDone(false, "Connect replaced") }
+                    return@launch
+                }
+
+                val nextReader = BufferedReader(InputStreamReader(s.inputStream, Charsets.UTF_8))
+                val nextWriter = BufferedWriter(OutputStreamWriter(s.outputStream, Charsets.UTF_8))
+
+                if (connectionGeneration.get() != generation) {
+                    try { nextReader.close() } catch (_: Exception) {}
+                    try { nextWriter.close() } catch (_: Exception) {}
+                    try { s.close() } catch (_: Exception) {}
+                    withContext(Dispatchers.Main) { onDone(false, "Connect replaced") }
+                    return@launch
+                }
+
+                bluetoothSocket = s
+                reader = nextReader
+                writer = nextWriter
+
+                updateState {
+                    it.copy(
+                        connecting = false,
+                        connected = true,
+                        authenticating = false,
+                        authorized = false,
+                        serverIp = address,
+                        serverPort = null,
+                        connectionType = ConnectionType.BLUETOOTH,
+                        lastError = null
+                    )
+                }
+
+                startReaderLoop(generation)
+                startHeartbeat(generation)
+
+                withContext(Dispatchers.Main) { onDone(true, null) }
+            } catch (e: Exception) {
+                val msg = e.message ?: e.javaClass.simpleName
+                log("Bluetooth connect failed: $msg")
+                if (connectionGeneration.get() == generation) {
+                    closeInternal("bluetooth connect fail", notify = false)
+                    updateState {
+                        it.copy(
+                            connecting = false,
+                            connected = false,
+                            authenticating = false,
+                            authorized = false,
+                            serverIp = address,
+                            serverPort = null,
+                            connectionType = ConnectionType.BLUETOOTH,
+                            lastError = msg
+                        )
+                    }
+                }
+                withContext(Dispatchers.Main) { onDone(false, msg) }
+            }
+        }
+    }
+
     fun close(reason: String = "manual") {
         connectionGeneration.incrementAndGet()
         ioScope.launch { closeInternal(reason) }
@@ -232,12 +332,16 @@ object DesklyClient {
         try { reader?.close() } catch (_: Exception) {}
         try { writer?.close() } catch (_: Exception) {}
         try { socket?.close() } catch (_: Exception) {}
+        try { bluetoothSocket?.close() } catch (_: Exception) {}
         try { connectingSocket?.close() } catch (_: Exception) {}
+        try { connectingBluetoothSocket?.close() } catch (_: Exception) {}
 
         reader = null
         writer = null
         socket = null
+        bluetoothSocket = null
         connectingSocket = null
+        connectingBluetoothSocket = null
 
         pending.forEach { (_, d) ->
             d.completeExceptionally(RuntimeException("closed"))

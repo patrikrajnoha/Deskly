@@ -296,6 +296,34 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:text="Unauthorized" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnBluetoothConnect"
+                    style="@style/DesklyPillButton"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_btn"
+                    android:text="Bluetooth"
+                    android:textAllCaps="false" />
+
+                <Space android:layout_width="10dp" android:layout_height="1dp" />
+
+                <TextView
+                    android:id="@+id/txtBluetoothValue"
+                    style="@style/DesklySettingValue"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:gravity="center_vertical"
+                    android:text="Paired devices" />
+            </LinearLayout>
         </LinearLayout>
 
         <Space android:layout_width="1dp" android:layout_height="12dp" />

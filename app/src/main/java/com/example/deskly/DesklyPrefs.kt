@@ -112,6 +112,17 @@ object DesklyPrefs {
         edit.apply()
     }
 
+    fun saveBluetoothDevice(context: Context, address: String, name: String?) {
+        val safeAddress = address.trim().uppercase()
+        prefs(context).edit()
+            .putString(KEY_IP, "")
+            .putString(KEY_PORT, "5050")
+            .putString(KEY_DEVICE, BluetoothProtocol.deviceKey(safeAddress))
+            .putString(KEY_DEVICE_RAW, safeAddress)
+            .putString(KEY_DEVICE_NAME, name?.trim()?.take(80)?.takeIf { it.isNotBlank() } ?: "Bluetooth PC")
+            .apply()
+    }
+
     fun getToken(context: Context): String? {
         val p = prefs(context)
         val deviceKey = getDeviceKey(context)

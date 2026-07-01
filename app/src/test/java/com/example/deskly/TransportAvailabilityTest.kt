@@ -14,14 +14,26 @@ class TransportAvailabilityTest {
         assertEquals(TransportAvailability.TransportType.BLUETOOTH, status.type)
         assertEquals("Bluetooth", status.label)
         assertFalse(status.available)
-        assertTrue(status.reason!!.contains("not implemented"))
+        assertTrue(status.reason!!.isNotBlank())
     }
 
     @Test
     fun preferredTransportUsesBluetoothOnlyWhenAvailable() {
         val selected = TransportAvailability.choosePreferred(
             listOf(
-                TransportAvailability.bluetoothUnavailable(),
+                TransportAvailability.bluetoothAvailable(),
+                TransportAvailability.lanAvailable()
+            )
+        )
+
+        assertEquals(TransportAvailability.TransportType.BLUETOOTH, selected?.type)
+    }
+
+    @Test
+    fun preferredTransportFallsBackToLanWhenBluetoothUnavailable() {
+        val selected = TransportAvailability.choosePreferred(
+            listOf(
+                TransportAvailability.bluetoothUnavailable("Permission denied"),
                 TransportAvailability.lanAvailable()
             )
         )

@@ -20,12 +20,19 @@ object TransportAvailability {
             label = "LAN"
         )
 
-    fun bluetoothUnavailable(reason: String = "Bluetooth transport is not implemented yet."): Status =
+    fun bluetoothUnavailable(reason: String = "Bluetooth permission, pairing, or hardware is unavailable."): Status =
         Status(
             type = TransportType.BLUETOOTH,
             available = false,
             label = "Bluetooth",
             reason = reason
+        )
+
+    fun bluetoothAvailable(): Status =
+        Status(
+            type = TransportType.BLUETOOTH,
+            available = true,
+            label = "Bluetooth"
         )
 
     fun choosePreferred(statuses: List<Status>): Status? =

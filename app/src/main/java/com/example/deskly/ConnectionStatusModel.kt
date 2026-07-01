@@ -41,11 +41,12 @@ object ConnectionStatusModel {
         }
 
         val pcName = savedPcName?.trim()?.takeIf { it.isNotBlank() }
+            ?: if (state.connectionType == DesklyClient.ConnectionType.BLUETOOTH && !state.serverIp.isNullOrBlank()) "Bluetooth PC" else null
             ?: if (!savedIp.isNullOrBlank()) "Saved PC" else "No PC selected"
-        val address = if (!savedIp.isNullOrBlank() && savedPort != null) {
-            "$savedIp:$savedPort"
-        } else {
-            "Choose a PC first"
+        val address = when {
+            state.connectionType == DesklyClient.ConnectionType.BLUETOOTH && !state.serverIp.isNullOrBlank() -> state.serverIp
+            !savedIp.isNullOrBlank() && savedPort != null -> "$savedIp:$savedPort"
+            else -> "Choose a PC first"
         }
 
         return ViewState(
@@ -53,7 +54,10 @@ object ConnectionStatusModel {
             auth = auth,
             pcName = pcName,
             address = address,
-            connectionType = ConnectionType.LAN
+            connectionType = when (state.connectionType) {
+                DesklyClient.ConnectionType.BLUETOOTH -> ConnectionType.BLUETOOTH
+                DesklyClient.ConnectionType.LAN -> ConnectionType.LAN
+            }
         )
     }
 }

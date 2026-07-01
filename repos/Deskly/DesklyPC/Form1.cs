@@ -17,6 +17,7 @@ namespace DesklyPC;
 public partial class Form1 : Form
 {
     private readonly TcpJsonServer _server = new();
+    private readonly BluetoothJsonServer _bluetoothServer = new();
     private readonly PairingManager _pairing = new();
     private readonly SleepTimerService _sleepTimer = new();
 
@@ -63,10 +64,7 @@ public partial class Form1 : Form
     private DateTime _lastUnknownLogAt = DateTime.MinValue;
     private string _lastUnknownType = "";
 
-    private readonly object _powerCommandGate = new();
-    private readonly Dictionary<string, long> _lastPowerCommandMsByKey = new(StringComparer.Ordinal);
-    private const long POWER_STALE_WINDOW_MS = 30_000;
-    private const long POWER_REPEAT_WINDOW_MS = 2_000;
+    private readonly PowerCommandGuard _powerCommandGuard = new();
 
     private bool _logsVisible = false;
     private readonly Size _compactSize = new(820, 620);
@@ -138,6 +136,8 @@ public partial class Form1 : Form
 
         _server.Log += AppendLog;
         _server.HandleRequest += HandleIncomingRequest;
+        _bluetoothServer.Log += AppendLog;
+        _bluetoothServer.HandleRequest += HandleIncomingRequest;
 
         lblIpValue.Text = GetLocalIpv4() ?? "unknown";
         SyncStartupUi();
@@ -291,56 +291,7 @@ public partial class Form1 : Form
     }
 
     private static bool TryOpenWebUrl(string? url, out string message, out string host)
-    {
-        host = "";
-        var safeUrl = (url ?? "").Trim();
-        if (safeUrl.Length == 0)
-        {
-            message = "Missing URL";
-            return false;
-        }
-
-        if (safeUrl.Length > 2000)
-        {
-            message = "URL too long";
-            return false;
-        }
-
-        if (!Uri.TryCreate(safeUrl, UriKind.Absolute, out var uri))
-        {
-            message = "Invalid URL";
-            return false;
-        }
-
-        if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
-        {
-            message = "Unsupported URL scheme";
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(uri.Host))
-        {
-            message = "Missing URL host";
-            return false;
-        }
-
-        try
-        {
-            host = uri.Host;
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = uri.AbsoluteUri,
-                UseShellExecute = true
-            });
-            message = "OK";
-            return true;
-        }
-        catch (Exception ex)
-        {
-            message = ex.Message;
-            return false;
-        }
-    }
+        => WebOpenService.TryOpenWebUrl(url, out message, out host);
 
     private void RefreshHostStatus()
     {
@@ -352,7 +303,7 @@ public partial class Form1 : Form
 
         var tcpPort = (int)numPort.Value;
         lblTcpValue.Text = tcpPort.ToString();
-        lblUdpValue.Text = _isRunning ? UDP_DISCOVERY_PORT.ToString() : "Off";
+        lblUdpValue.Text = _isRunning ? $"{UDP_DISCOVERY_PORT} / BT {(_bluetoothServer.IsRunning ? "On" : "Off")}" : "Off";
     }
 
     private void RefreshPairingStatus()
@@ -600,6 +551,17 @@ public partial class Form1 : Form
             WriteLog(LogLevel.Warn, $"Discovery unavailable: {ex.Message}");
         }
 
+        try
+        {
+            _bluetoothServer.Start();
+            LogInfo("Bluetooth enabled");
+        }
+        catch (Exception ex)
+        {
+            LogWarn("Bluetooth unavailable");
+            WriteLog(LogLevel.Warn, $"Bluetooth unavailable: {ex.Message}");
+        }
+
         lblIpValue.Text = GetLocalIpv4() ?? "unknown";
         SetRunningUi(true);
         RefreshHostStatus();
@@ -612,6 +574,7 @@ public partial class Form1 : Form
     private void btnStop_Click(object sender, EventArgs e)
     {
         _server.Stop();
+        _bluetoothServer.Stop();
         _sleepTimer.Cancel();
         _discovery?.Stop();
 
@@ -1128,55 +1091,6 @@ public partial class Form1 : Form
         if (el.ValueKind == JsonValueKind.Number && el.TryGetInt32(out var v)) return v;
         if (el.ValueKind == JsonValueKind.String && int.TryParse(el.GetString(), out var vs)) return vs;
         return fallback;
-    }
-
-    private static bool TryGetLong(JsonElement payload, string prop, out long value)
-    {
-        value = 0;
-        if (payload.ValueKind != JsonValueKind.Object) return false;
-        if (!payload.TryGetProperty(prop, out var el)) return false;
-
-        if (el.ValueKind == JsonValueKind.Number && el.TryGetInt64(out value)) return true;
-        if (el.ValueKind == JsonValueKind.String && long.TryParse(el.GetString(), out value)) return true;
-        return false;
-    }
-
-    private static bool IsDangerousPowerAction(string type)
-        => type is "power_sleep" or "power_shutdown" or "power_restart";
-
-    private static bool IsFreshPowerRequest(JsonElement payload, out string message)
-    {
-        message = "OK";
-        if (!TryGetLong(payload, "issuedAtUtcMs", out var issuedAtUtcMs))
-            return true;
-
-        var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        if (Math.Abs(now - issuedAtUtcMs) <= POWER_STALE_WINDOW_MS)
-            return true;
-
-        message = "Stale power command rejected";
-        return false;
-    }
-
-    private bool IsRepeatedPowerRequest(string type, string? token, out string message)
-    {
-        message = "OK";
-        var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        var key = $"{token ?? ""}:{type}";
-
-        lock (_powerCommandGate)
-        {
-            if (_lastPowerCommandMsByKey.TryGetValue(key, out var lastMs) &&
-                now - lastMs >= 0 &&
-                now - lastMs < POWER_REPEAT_WINDOW_MS)
-            {
-                message = "Repeated power command rejected";
-                return true;
-            }
-
-            _lastPowerCommandMsByKey[key] = now;
-            return false;
-        }
     }
 
     private static object EmptyPowerPlanData()
@@ -1725,6 +1639,21 @@ public partial class Form1 : Form
                 {
                     var rawAction = payload.TryGetProperty("action", out var actionEl) ? (actionEl.GetString() ?? "") : "";
                     var action = MediaActionMapper.Normalize(rawAction);
+                    var targetId = payload.TryGetProperty("targetId", out var targetEl) && targetEl.ValueKind == JsonValueKind.String
+                        ? targetEl.GetString()
+                        : "";
+                    if (!string.IsNullOrWhiteSpace(targetId) &&
+                        !WindowSwitcherService.TrySwitchTo(targetId, out var switchMsg, out _))
+                    {
+                        return WithRid(jsonLine, new
+                        {
+                            type = "media_response",
+                            ok = false,
+                            message = switchMsg,
+                            data = new { command = type, action, targetId }
+                        });
+                    }
+
                     var mapping = MediaActionMapper.Resolve(action);
                     msg = "";
                     ok = mapping is not null && (mapping.Kind switch
@@ -1735,7 +1664,7 @@ public partial class Form1 : Form
                     if (mapping is null) msg = "Unsupported media action";
                     if (ok) LogInfo($"Media: {action}");
                     else LogErr($"Media action failed: {msg}");
-                    data = new { command = type, action };
+                    data = new { command = type, action, targetId };
                 }
                 else
                 {
@@ -1764,15 +1693,26 @@ public partial class Form1 : Form
                 if (!_pairing.IsTokenValid(token))
                     return WithRid(jsonLine, new { type = "video_list_response", ok = false, message = "Unauthorized", data = new { supported = false, videos = Array.Empty<object>(), fallback = "media_remote" } });
 
+                var videos = VideoDetectionService.Detect()
+                    .Select(x => new
+                    {
+                        id = x.Id,
+                        title = x.Title,
+                        source = x.Source,
+                        playbackState = x.PlaybackState,
+                        controllable = x.Controllable
+                    })
+                    .ToArray();
+
                 return WithRid(jsonLine, new
                 {
                     type = "video_list_response",
                     ok = true,
-                    message = "Automatic video detection is not available on this host.",
+                    message = videos.Length == 0 ? "No active media windows detected. Use Media Remote." : "OK",
                     data = new
                     {
-                        supported = false,
-                        videos = Array.Empty<object>(),
+                        supported = true,
+                        videos,
                         fallback = "media_remote"
                     }
                 });
@@ -2058,17 +1998,17 @@ public partial class Form1 : Form
                 if (!_pairing.IsTokenValid(token))
                     return WithRid(jsonLine, new { type = "power_response", ok = false, message = "Unauthorized", data = new { action = type, fadeOutVolume = false } });
 
-                if (!IsFreshPowerRequest(payload, out var staleMessage))
+                if (!_powerCommandGuard.IsFreshPowerRequest(payload, out var staleMessage))
                     return WithRid(jsonLine, new { type = "power_response", ok = false, message = staleMessage, data = new { action = type, fadeOutVolume = false } });
 
-                if (IsDangerousPowerAction(type) &&
+                if (PowerCommandGuard.IsDangerousPowerAction(type) &&
                     payload.TryGetProperty("confirmed", out _) &&
                     (!TryGetBoolNullable(payload, "confirmed", out var confirmed) || !confirmed))
                 {
                     return WithRid(jsonLine, new { type = "power_response", ok = false, message = "Confirmation required", data = new { action = type, fadeOutVolume = false } });
                 }
 
-                if (IsDangerousPowerAction(type) && IsRepeatedPowerRequest(type, token, out var repeatMessage))
+                if (PowerCommandGuard.IsDangerousPowerAction(type) && _powerCommandGuard.IsRepeatedPowerRequest(type, token, out var repeatMessage))
                     return WithRid(jsonLine, new { type = "power_response", ok = false, message = repeatMessage, data = new { action = type, fadeOutVolume = false } });
 
                 bool ok;

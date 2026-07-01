@@ -258,6 +258,7 @@ class MainActivity : AppCompatActivity(), DesklyClient.Listener {
     private val actionStatusHandler = Handler(Looper.getMainLooper())
     private val shortcutSlotActions = arrayOfNulls<String>(5)
     private var remoteMode: RemoteMode = RemoteMode.MOUSE
+    private var selectedVideoTargetId: String? = null
     private enum class RemoteMode { MOUSE, KEYS, APPS, SLIDES, SYSTEM }
     private data class AppCatalogItem(val id: String, val label: String)
 
@@ -1587,7 +1588,7 @@ class MainActivity : AppCompatActivity(), DesklyClient.Listener {
         Log.d("Deskly", "Keyboard command=$type authorized=${DesklyClient.state.authorized}")
     }
 
-    private fun sendMediaAction(action: String) {
+    private fun sendMediaAction(action: String, targetId: String? = selectedVideoTargetId) {
         val normalized = MediaProtocol.normalizeAction(action)
         if (!MediaProtocol.isSupported(normalized)) {
             toast("Unsupported")
@@ -1599,7 +1600,7 @@ class MainActivity : AppCompatActivity(), DesklyClient.Listener {
         DesklyClient.sendSecure(
             MediaProtocol.TYPE,
             token,
-            MediaProtocol.payload(normalized)
+            MediaProtocol.payload(normalized, targetId)
         )
     }
 
@@ -1623,7 +1624,24 @@ class MainActivity : AppCompatActivity(), DesklyClient.Listener {
 
         AlertDialog.Builder(this)
             .setTitle("Videos")
-            .setItems(labels) { _, _ -> showActionStatus("Use controls") }
+            .setItems(labels) { _, which ->
+                val item = result.videos.getOrNull(which) ?: return@setItems
+                selectedVideoTargetId = item.id
+                showVideoControls(item)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showVideoControls(item: VideoProtocol.VideoItem) {
+        val actions = arrayOf("Play/Pause", "Seek Back", "Seek Forward", "Fullscreen")
+        val ids = arrayOf("play_pause", "seek_backward", "seek_forward", "fullscreen")
+        AlertDialog.Builder(this)
+            .setTitle(item.title)
+            .setItems(actions) { _, which ->
+                val action = ids.getOrNull(which) ?: return@setItems
+                sendMediaAction(action, item.id)
+            }
             .setNegativeButton("Cancel", null)
             .show()
     }

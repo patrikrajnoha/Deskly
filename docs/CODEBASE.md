@@ -80,8 +80,8 @@ The Visual Studio publish profile at `repos/Deskly/DesklyPC/Properties/PublishPr
 - Missing protocol versions are treated as legacy v1; explicit unsupported versions are rejected before command dispatch.
 - Secure requests include `payload.token`; the server validates it with `PairingManager.IsTokenValid`.
 - Command metadata is mirrored in Android `DesklyCommands` and PC `DesklyProtocol.Commands`. It records known request types, expected response types, broad command groups, token requirements, and legacy command status without changing the wire protocol.
-- Automatic video detection is represented by `video_list` / `video_list_response`, but the current Windows host intentionally returns `supported: false` with `fallback: "media_remote"`. No screen scraping, browser inspection, or media-session integration is active yet.
-- Bluetooth is not an active transport. Android models it only as an unavailable/fallback state in `TransportAvailability`; LAN remains the only implemented connection path.
+- Automatic video detection is represented by `video_list` / `video_list_response`. The Windows host detects likely media/browser windows from safe top-level window/process metadata and returns title/source with `playbackState = "unknown"` when available. No screen scraping or browser content inspection is active.
+- Bluetooth Classic/RFCOMM is an optional active transport using the same newline JSON protocol and stable service UUID `6f5f7a04-2b5a-41d4-9f5f-3e8e0fd8c901`. LAN remains the primary fallback.
 - No TLS/encryption is visible in code. Treat communication as local-network only.
 
 ## Pairing/Auth/Token Flow
@@ -126,7 +126,7 @@ The Visual Studio publish profile at `repos/Deskly/DesklyPC/Properties/PublishPr
 - Mouse: `mouse_move`, `mouse_click`, `mouse_scroll`, `mouse_button`.
 - Keyboard: `keyboard_text`, `keyboard_key`, `keyboard_shortcut`, plus semantic `shortcut_action`.
 - Media: semantic `media_action`, with legacy `media_key` still accepted by the PC host.
-- Video detection: `video_list` returns `video_list_response`; currently safe fallback only, with `data.supported = false`, empty `videos`, and `fallback = "media_remote"`.
+- Video detection: `video_list` returns `video_list_response` with `data.supported`, `videos`, and `fallback = "media_remote"`. Selected video controls may include `media_action.payload.targetId`; the PC host activates that window before sending the semantic media action.
 - Open actions: `app_shortcuts_get`, `app_catalog_get`, `app_shortcut_set`, `app_open`, `app_windows_get`, `app_switch`, `web_open`.
 - Common responses include `pair_response`, `auth_response`, `display_list_response`, `display_control_response`, `display_mode_response`, `brightness_response`, `audio_response`, `night_response`, `quiet_response`, `power_plan_response`, `sleep_timer_response`, `sleep_timer_status_response`, `power_response`, `app_response`, `web_response`, and generic `response`.
 
@@ -148,6 +148,7 @@ The Visual Studio publish profile at `repos/Deskly/DesklyPC/Properties/PublishPr
 - `keyboard_text` accepts Unicode `payload.text` and the PC host injects it with `KEYEVENTF_UNICODE`, preserving diacritics and dictated text that the Android IME inserted into the text box. `keyboard_key` and `keyboard_shortcut` remain virtual-key based for Enter, Backspace, Tab, Esc, arrows, and modifier shortcuts.
 - `web_open` opens an explicit user-selected website on the PC through the default browser. Only absolute `http://` and `https://` URLs are accepted, and Android prefixes bare domains with `https://`.
 - App Switcher uses Windows visible top-level windows only. Android requests `app_windows_get`, displays returned titles in a chooser, and sends `app_switch` with the opaque `windowId`. The PC host validates that the window still exists before trying to activate it. Window titles are response data for the feature, but logs avoid printing specific titles.
+- Bluetooth setup is OS-level first: pair the Android phone and Windows PC in system Bluetooth settings, then use Settings > Bluetooth in Android Deskly. Android 12+ requires `BLUETOOTH_CONNECT` at runtime. Pairing/auth still uses Deskly PIN/token over the Bluetooth JSON connection.
 - Quiet Mode remains a separate on/off command via `quiet_get` and `quiet_set`; it is not direct fan speed control.
 - Windows Host autostart is stored under the current user's `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` key as `Deskly Host`.
 

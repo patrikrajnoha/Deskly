@@ -35,6 +35,10 @@ object MediaProtocol {
     fun isSupported(action: String): Boolean =
         normalizeAction(action) in supportedActions
 
-    fun payload(action: String): JSONObject =
-        JSONObject().put("action", normalizeAction(action))
+    fun payload(action: String, targetId: String? = null): JSONObject =
+        JSONObject()
+            .put("action", normalizeAction(action))
+            .apply {
+                if (!targetId.isNullOrBlank()) put("targetId", targetId.trim())
+            }
 }

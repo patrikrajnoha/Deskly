@@ -1,5 +1,11 @@
 package com.example.deskly
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.*
@@ -64,6 +70,8 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
     private lateinit var btnConnect: Button
     private lateinit var btnDisconnect: Button
     private lateinit var btnPing: Button
+    private lateinit var btnBluetoothConnect: Button
+    private lateinit var txtBluetoothValue: TextView
 
     private lateinit var edtPin: EditText
     private lateinit var btnPair: Button
@@ -138,6 +146,8 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
         btnConnect = findViewById(R.id.btnConnect)
         btnDisconnect = findViewById(R.id.btnDisconnect)
         btnPing = findViewById(R.id.btnPing)
+        btnBluetoothConnect = findViewById(R.id.btnBluetoothConnect)
+        txtBluetoothValue = findViewById(R.id.txtBluetoothValue)
 
         edtPin = findViewById(R.id.edtPin)
         btnPair = findViewById(R.id.btnPair)
@@ -322,6 +332,10 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
             }
         }
 
+        btnBluetoothConnect.setOnClickListener {
+            showBluetoothDevicePicker()
+        }
+
         // --- Pairing actions ---
         btnPair.setOnClickListener {
             if (busy) return@setOnClickListener
@@ -329,12 +343,14 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
             val pin = edtPin.text.toString().trim()
             val ip = edtIp.text.toString().trim()
             val port = edtPort.text.toString().trim().toIntOrNull()
+            val bluetoothConnected = DesklyClient.state.connected &&
+                DesklyClient.state.connectionType == DesklyClient.ConnectionType.BLUETOOTH
 
             if (pin.length != 6) { toast("PIN must be 6 digits"); return@setOnClickListener }
-            if (ip.isBlank() || port == null || port !in 1..65535) { toast("Invalid IP/Port"); return@setOnClickListener }
+            if (!bluetoothConnected && (ip.isBlank() || port == null || port !in 1..65535)) { toast("Invalid IP/Port"); return@setOnClickListener }
 
             busy = true
-            saveIpPort(ip, port)
+            if (!bluetoothConnected) saveIpPort(ip, port!!)
             updateUiState()
 
             val doPair = {
@@ -365,7 +381,7 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
 
             if (DesklyClient.state.connected) doPair()
             else {
-                DesklyClient.connect(ip, port) { ok, err ->
+                DesklyClient.connect(ip, port!!) { ok, err ->
                     runOnUiThread {
                         if (!ok) {
                             busy = false
@@ -554,6 +570,99 @@ class SettingsActivity : AppCompatActivity(), DesklyClient.Listener {
 
         btnPair.isEnabled = !busy
         btnClearToken.isEnabled = hasToken && !busy
+        btnBluetoothConnect.isEnabled = !busy && !s.connecting && !s.authenticating
+        txtBluetoothValue.text = if (s.connectionType == DesklyClient.ConnectionType.BLUETOOTH && s.connected) {
+            if (s.authorized) "Connected" else "Pair required"
+        } else {
+            "Paired devices"
+        }
+    }
+
+    private fun hasBluetoothConnectPermission(): Boolean {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
+            checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestBluetoothConnectPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            requestPermissions(arrayOf(Manifest.permission.BLUETOOTH_CONNECT), 2002)
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun showBluetoothDevicePicker() {
+        if (!hasBluetoothConnectPermission()) {
+            requestBluetoothConnectPermission()
+            return
+        }
+
+        val adapter = BluetoothAdapter.getDefaultAdapter()
+        if (adapter == null) {
+            toast("Bluetooth unavailable")
+            return
+        }
+        if (!adapter.isEnabled) {
+            toast("Turn on Bluetooth first")
+            return
+        }
+
+        val devices = adapter.bondedDevices
+            .orEmpty()
+            .sortedBy { it.name ?: it.address }
+
+        if (devices.isEmpty()) {
+            toast("Pair this PC in Android Bluetooth settings first")
+            return
+        }
+
+        val labels = devices.map { device ->
+            "${device.name ?: "Bluetooth device"}\n${device.address}"
+        }.toTypedArray()
+
+        AlertDialog.Builder(this)
+            .setTitle("Bluetooth PC")
+            .setItems(labels) { _, which ->
+                devices.getOrNull(which)?.let { connectBluetoothDevice(it) }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun connectBluetoothDevice(device: BluetoothDevice) {
+        if (busy) return
+        busy = true
+        DesklyPrefs.saveBluetoothDevice(this, device.address, device.name)
+        updateUiState()
+
+        DesklyClient.connectBluetooth(device) { ok, err ->
+            runOnUiThread {
+                busy = false
+                if (!ok) {
+                    toast("Bluetooth failed: ${err ?: "Unknown error"}")
+                    renderState()
+                    updateUiState()
+                    return@runOnUiThread
+                }
+
+                val token = getTokenRaw()
+                if (!token.isNullOrBlank()) {
+                    DesklyClient.setToken(token)
+                    DesklyClient.auth(token) { okAuth, msg ->
+                        runOnUiThread {
+                            if (!okAuth) toast("Pair Required")
+                            else afterAuthInit(token)
+                            renderState()
+                            updateUiState()
+                        }
+                    }
+                } else {
+                    toast("Bluetooth connected. Enter PIN to pair.")
+                    renderState()
+                    updateUiState()
+                }
+            }
+        }
     }
 
     private fun applyTimerActionUi() {

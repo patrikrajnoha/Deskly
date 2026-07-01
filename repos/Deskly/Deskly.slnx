@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="DesklyPC/DesklyPC.csproj" />
+  <Project Path="DesklyPC.Tests/DesklyPC.Tests.csproj" />
 </Solution>
